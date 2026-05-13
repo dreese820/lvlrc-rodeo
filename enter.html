@@ -234,19 +234,30 @@ async function submitEntry() {
     if (!res.ok) throw new Error(data.error || 'Submission failed');
 
     var rod = RODEOS.find(function(r){return r.id===selectedRodeo;});
-    var evLabels = eventIds.map(function(eid){
+    var evArr = eventIds.map(function(eid){
       var e = EVENTS.find(function(x){return x.id===eid;});
       return e ? e.label : eid;
-    }).join(', ');
+    });
+    var totalDue = evArr.length * 10;
+
+    var evRows = evArr.map(function(label){
+      return '<div style="display:flex;justify-content:space-between;padding:7px 14px;border-bottom:1px solid var(--bdr);font-size:.88rem">' +
+             '<span>'+label+'</span><span style="color:var(--mut)">$10.00</span></div>';
+    }).join('');
 
     document.getElementById('main').innerHTML =
       '<div class="card" style="text-align:center;padding:32px">' +
       '<div style="font-size:2.5rem;margin-bottom:16px">🤠</div>' +
       '<div class="st" style="text-align:center;color:#5cd08a">Entry Submitted!</div>' +
-      '<p style="margin-bottom:12px"><strong>'+name+'</strong> is entered for <strong>'+rod.label+'</strong></p>' +
-      '<p style="color:var(--mut);font-size:.88rem;margin-bottom:6px">Events: '+evLabels+'</p>' +
-      (isLL?'<p style="color:var(--mut);font-size:.85rem">Marked as Lead Line</p>':'')+
-      '<p class="note" style="margin-top:16px">To make changes, contact the club secretary.</p>' +
+      '<p style="margin-bottom:16px"><strong>'+name+'</strong> &mdash; '+rod.label+' ('+rod.date+')</p>' +
+      '<div style="text-align:left;border:1px solid var(--bdr);border-radius:7px;overflow:hidden;margin-bottom:16px">' +
+      evRows +
+      (isLL?'<div style="display:flex;justify-content:space-between;padding:7px 14px;border-bottom:1px solid var(--bdr);font-size:.85rem;color:var(--mut)"><span>Lead Line (adult-led)</span><span>&mdash;</span></div>':'')+
+      '<div style="display:flex;justify-content:space-between;padding:9px 14px;background:rgba(200,146,10,.08);font-weight:700">' +
+      '<span>Total due &mdash; '+evArr.length+' event'+(evArr.length!==1?'s':'')+'</span>' +
+      '<span style="color:var(--gold)">$'+totalDue+'.00</span>' +
+      '</div></div>' +
+      '<p class="note">To make changes, contact the club secretary.</p>' +
       '<div style="margin-top:20px;display:flex;flex-direction:column;gap:10px;align-items:center">' +
       '<button class="btn" style="max-width:280px" onclick="init()">Enter Another Contestant</button>' +
       '<div class="links"><a href="/standings">View Standings</a></div>' +
