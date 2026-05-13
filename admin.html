@@ -93,6 +93,9 @@ input[type=checkbox]{accent-color:var(--gold);width:15px;height:15px;cursor:poin
   .dn{color:#000 !important;}
   .flt,.btn,.fb,.np{display:none !important;}
   .card{page-break-inside:avoid;margin-bottom:12px;}
+  th,td{color:#000 !important;border-color:#ccc !important;}
+  th{border-bottom:2px solid #000 !important;font-size:.72rem;text-transform:uppercase;}
+  td{font-size:.88rem;}
 }
 </style>
 </head>
@@ -111,6 +114,7 @@ input[type=checkbox]{accent-color:var(--gold);width:15px;height:15px;cursor:poin
   <button class="nb" id="t-secretary" onclick="go('secretary')">Secretary</button>
   <button class="nb" id="t-results" onclick="go('results')">Results</button>
   <button class="nb" id="t-settings" onclick="go('settings')">Settings</button>
+  <button class="nb" id="t-fees" onclick="go('fees')">Fees</button>
 </nav>
 <div id="toast"></div>
 <main id="main"><div class="empty" style="padding:60px 0">Loading…</div></main>
@@ -394,7 +398,8 @@ function renderDraw(){
   h+='<div class="pi">'+g+' &nbsp;&bull;&nbsp; Age Group: '+ag+'</div></div>';
   h+='<div class="fr np" style="margin-bottom:12px">';
   h+='<button class="btn bg" onclick="drawAll()">Draw All Events</button> ';
-  h+='<button class="btn bo" onclick="window.print()">Print Draw Sheet</button>';
+  h+='<button class="btn bo" onclick="window.print()">Print This View</button> ';
+  h+='<button class="btn bo" onclick="printAllDraws()">Print All Draw Sheets</button>';
   h+='</div>';
   h+=fbar('dG','dA');
   var evs=EVENTS.filter(function(e){return e.gender===g&&e.ag===ag;});
@@ -701,6 +706,122 @@ async function toggleOpen(rodeoId,open){
   }catch(e){toast(e.message,'err');}
 }
 
+// ─── Fees tab ─────────────────────────────────────────────────────────────────
+function renderFees(){
+  var rid=S.rod;
+  var rod=RODEOS.find(function(r){return r.id===rid;});
+  var rodEnt=S.entries[rid]||{};
+
+  // Build cid -> [{label}] map
+  var byC={};
+  Object.keys(rodEnt).forEach(function(eid){
+    var ev=EVENTS.find(function(e){return e.id===eid;});
+    if(!ev)return;
+    rodEnt[eid].forEach(function(cid){
+      if(!byC[cid])byC[cid]=[];
+      byC[cid].push(ev.label);
+    });
+  });
+
+  var rows=Object.keys(byC).map(function(cid){
+    var c=gC(cid);
+    return{name:c.name,events:byC[cid],total:byC[cid].length*10};
+  });
+  rows.sort(function(a,b){
+    var la=a.name.trim().split(' ').pop().toLowerCase();
+    var lb=b.name.trim().split(' ').pop().toLowerCase();
+    return la<lb?-1:la>lb?1:0;
+  });
+
+  var grandTotal=rows.reduce(function(s,r){return s+r.total;},0);
+  var grandEvents=rows.reduce(function(s,r){return s+r.events.length;},0);
+
+  var h='<h2 class="st np">Entry Fees &mdash; '+rod.label+' ('+rod.date+')</h2>';
+  h+='<div class="ph"><div class="pc">Long Valley Lions Rodeo Club</div>';
+  h+='<div class="pi">Entry Fees &mdash; '+rod.label+' &mdash; '+rod.date+'</div>';
+  h+='<div class="pi">$10.00 per event</div></div>';
+  h+='<div class="fr np" style="margin-bottom:16px">';
+  h+='<button class="btn bo" onclick="window.print()">Print Fee Sheet</button>';
+  h+='</div>';
+
+  if(!rows.length) return h+'<div class="empty">No entries for '+rod.label+' yet.</div>';
+
+  h+='<div class="card">';
+  h+='<table>';
+  h+='<thead><tr>';
+  h+='<th>#</th><th>Contestant</th><th>Events Entered</th>';
+  h+='<th style="text-align:center">Events</th><th style="text-align:right">Amount Due</th>';
+  h+='</tr></thead><tbody>';
+  rows.forEach(function(r,i){
+    h+='<tr>';
+    h+='<td style="color:var(--dim);width:32px">'+(i+1)+'</td>';
+    h+='<td style="font-weight:700;white-space:nowrap">'+r.name+'</td>';
+    h+='<td style="font-size:.82rem;color:var(--mut)">'+r.events.join(', ')+'</td>';
+    h+='<td style="text-align:center">'+r.events.length+'</td>';
+    h+='<td style="text-align:right;font-weight:700;color:var(--gold)">$'+r.total+'.00</td>';
+    h+='</tr>';
+  });
+  h+='<tr style="border-top:2px solid var(--bdr2)">';
+  h+='<td colspan="3" style="font-weight:700;padding-top:12px">TOTAL — '+rows.length+' contestant'+(rows.length!==1?'s':'')+'</td>';
+  h+='<td style="text-align:center;font-weight:700;padding-top:12px">'+grandEvents+'</td>';
+  h+='<td style="text-align:right;font-weight:700;font-size:1.05rem;color:var(--gold);padding-top:12px">$'+grandTotal+'.00</td>';
+  h+='</tr>';
+  h+='</tbody></table></div>';
+  return h;
+}
+
+// ─── Print all draws ──────────────────────────────────────────────────────────
+function printAllDraws(){
+  var rid=S.rod;
+  var rod=RODEOS.find(function(r){return r.id===rid;});
+  var sections=[];
+  ['Girls','Boys'].forEach(function(gender){
+    AGS.forEach(function(ag){
+      EVENTS.filter(function(e){return e.gender===gender&&e.ag===ag;}).forEach(function(ev){
+        var ents=gE(rid,ev.id);
+        if(!ents.length)return;
+        var draw=gD(rid,ev.id);
+        sections.push({gender:gender,ag:ag,ev:ev,list:draw.length?draw:ents,hasDraw:draw.length>0});
+      });
+    });
+  });
+  if(!sections.length){toast('No entries for this rodeo yet.','err');return;}
+
+  var css=[
+    '*{box-sizing:border-box;margin:0;padding:0;}',
+    'body{font-family:Arial,sans-serif;font-size:10.5pt;color:#000;background:#fff;padding:0.35in;}',
+    'h1{font-size:13pt;font-weight:bold;text-transform:uppercase;letter-spacing:.06em;text-align:center;}',
+    '.sub{font-size:9.5pt;text-align:center;margin-top:3px;margin-bottom:14px;color:#333;}',
+    '.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;}',
+    '.box{border:1pt solid #bbb;border-radius:3pt;padding:7px 9px;break-inside:avoid;}',
+    '.etitle{font-weight:bold;font-size:9.5pt;}',
+    '.esub{font-size:8pt;color:#555;margin-bottom:5px;padding-bottom:4px;border-bottom:1pt solid #ddd;}',
+    '.row{display:flex;gap:5px;padding:2.5px 0;border-bottom:1pt dotted #e0e0e0;font-size:9pt;}',
+    '.row:last-child{border-bottom:none;}',
+    '.num{min-width:18px;font-weight:bold;color:#666;font-size:8.5pt;}',
+    '.nd{font-size:8pt;color:#888;font-style:italic;}',
+    '@media print{body{padding:0;}@page{size:letter;margin:0.4in;}}'
+  ].join('');
+
+  var body='<h1>Long Valley Lions Rodeo Club</h1>';
+  body+='<div class="sub">'+rod.label+' &mdash; '+rod.date+' &nbsp;&bull;&nbsp; Draw Sheets</div>';
+  body+='<div class="grid">';
+  sections.forEach(function(s){
+    body+='<div class="box">';
+    body+='<div class="etitle">'+s.ev.label+'</div>';
+    body+='<div class="esub">'+s.gender+' &bull; Age '+s.ag+(s.hasDraw?'':' <em>(entry order)</em>')+'</div>';
+    s.list.forEach(function(cid,i){
+      body+='<div class="row"><span class="num">'+(i+1)+'.</span><span>'+gC(cid).name+'</span></div>';
+    });
+    body+='</div>';
+  });
+  body+='</div>';
+
+  var w=window.open('','_blank','width=820,height=640');
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Draw Sheets</title><style>'+css+'</style></head><body>'+body+'<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};<\/script></body></html>');
+  w.document.close();
+}
+
 // ─── Main render ──────────────────────────────────────────────────────────────
 function render(){
   renderHdr();
@@ -711,6 +832,7 @@ function render(){
   else if(curTab==='secretary')m.innerHTML=renderSecretary();
   else if(curTab==='results')  m.innerHTML=renderResults();
   else if(curTab==='settings') m.innerHTML=renderSettings();
+  else if(curTab==='fees')     m.innerHTML=renderFees();
 }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
