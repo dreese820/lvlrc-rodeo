@@ -46,10 +46,11 @@ tr:nth-child(even) td{background:rgba(200,146,10,.03);}
 
 <script src="/shared.js"></script>
 <script>
-var view = 'allaround';   // 'allaround' | 'event'
+var view = 'allaround';   // 'allaround' | 'event' | 'evstandings'
 var selRodeo = 'r1';
 var selGender = 'Girls';
 var selAge = '0-5';
+var selEvLabel = null;
 
 var contestants = [];
 var allEntries = {};
@@ -78,6 +79,7 @@ function sf(k,v){
   else if(k==='rod') selRodeo=v;
   else if(k==='gender') selGender=v;
   else if(k==='age') selAge=v;
+  else if(k==='evlabel') selEvLabel=v;
   render();
 }
 
@@ -85,13 +87,14 @@ function render() {
   renderNav();
   var m = document.getElementById('main');
   if (view === 'allaround') m.innerHTML = renderAllAround();
+  else if (view === 'evstandings') m.innerHTML = renderEvStandings();
   else m.innerHTML = renderEvent();
 }
 
 function renderNav() {
-  var rodLabel = RODEOS.find(function(r){return r.id===selRodeo;});
   var h = '';
   h += '<button class="nb'+(view==='allaround'?' on':'')+'" onclick="sf(\'view\',\'allaround\')">All-Around Standings</button>';
+  h += '<button class="nb'+(view==='evstandings'?' on':'')+'" onclick="sf(\'view\',\'evstandings\')">Event Standings</button>';
   h += '<button class="nb'+(view==='event'?' on':'')+'" onclick="sf(\'view\',\'event\')">Event Results</button>';
   h += '<button class="nb" onclick="printAllResults()">Print Results</button>';
   document.getElementById('nav').innerHTML = h;
@@ -206,6 +209,73 @@ function renderEvent() {
 
   if (!any) h += '<div class="empty">No results posted for this selection yet.</div>';
   return h;
+}
+
+function renderEvStandings() {
+  var evLabels = [], seenL = {};
+  EVENTS.forEach(function(ev){ if(!seenL[ev.label]){seenL[ev.label]=true;evLabels.push(ev.label);} });
+  if (!selEvLabel || !seenL[selEvLabel]) selEvLabel = evLabels[0];
+
+  var h = '<h2 class="st">Event Standings</h2>';
+  h += '<div class="ibox">Cumulative points per event across all 4 rodeos.</div>';
+
+  // Event label picker
+  h += '<div class="flt">';
+  evLabels.forEach(function(lbl){
+    h += '<button class="fb'+(selEvLabel===lbl?' on':'')+'" onclick="sf(\'evlabel\',\''+lbl.replace(/\'/g,"\\'")+'\')">' + lbl + '</button>';
+  });
+  h += '</div>';
+
+  h += '<div style="text-align:right;margin-bottom:14px">';
+  h += '<button class="fb" onclick="printEvStandings()" style="color:var(--gold);border-color:rgba(200,146,10,.4)">Print Event Standings</button>';
+  h += '</div>';
+
+  var any = false;
+  AGS.forEach(function(ag){
+    ['Girls','Boys'].forEach(function(gender){
+      var ev = EVENTS.find(function(e){ return e.label===selEvLabel && e.gender===gender && e.ag===ag; });
+      if (!ev) return;
+      var cidSet = {};
+      RODEOS.forEach(function(rod){ ((allEntries[rod.id]||{})[ev.id]||[]).forEach(function(cid){cidSet[cid]=true;}); });
+      var cids = Object.keys(cidSet);
+      if (!cids.length) return;
+      any = true;
+
+      var cache = {};
+      RODEOS.forEach(function(rod, ri){
+        rankEv(allEntries[rod.id]||{}, allResults[rod.id]||{}, ev.id).forEach(function(r){
+          if (!cache[r.cid]) cache[r.cid] = [0,0,0,0];
+          cache[r.cid][ri] = r.points || 0;
+        });
+      });
+
+      var rows = cids.map(function(cid){
+        var pts = cache[cid] || [0,0,0,0];
+        return {name:gC(cid).name, pts:pts, total:pts.reduce(function(a,b){return a+b;},0)};
+      }).sort(function(a,b){ return b.total - a.total; });
+
+      h += '<div class="card"><div class="gh">'+gender+' &mdash; Age '+ag+'</div>';
+      h += '<table><thead><tr><th>Rank</th><th>Contestant</th>';
+      RODEOS.forEach(function(r){ h += '<th>'+r.label+'</th>'; });
+      h += '<th>Total</th></tr></thead><tbody>';
+      rows.forEach(function(row, i){
+        h += '<tr><td class="'+(i===0?'gd':'')+'">'+(i+1)+'</td>';
+        h += '<td style="font-weight:600">'+row.name+'</td>';
+        row.pts.forEach(function(p){ h += '<td style="color:var(--mut)">'+(p||'-')+'</td>'; });
+        h += '<td class="gd" style="font-size:1rem">'+(row.total||'-')+'</td></tr>';
+      });
+      h += '</tbody></table></div>';
+    });
+  });
+
+  if (!any) h += '<div class="empty">No entries recorded for '+selEvLabel+' yet.</div>';
+  return h;
+}
+
+function printEvStandings() {
+  var w = window.open('','_blank','width=900,height=700');
+  w.document.write(buildEventStandingsDoc(selEvLabel, allEntries, allResults, contestants));
+  w.document.close();
 }
 
 function printAllResults() {

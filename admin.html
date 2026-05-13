@@ -154,7 +154,7 @@ var S = {
   eG:'Girls', eA:'0-5',
   dG:'Girls', dA:'0-5',
   sG:'Girls', sA:'0-5', sEv:null,
-  rV:'event', rR:'r1', rG:'Girls', rA:'0-5'
+  rV:'event', rR:'r1', rG:'Girls', rA:'0-5', rEL:null
 };
 
 async function loadAll() {
@@ -605,10 +605,57 @@ function renderResults(){
   h+='<div class="fr np" style="margin-bottom:14px"><button class="btn bo" onclick="printAllResults()">Print All Results</button></div>';
   h+='<div class="flt">';
   h+='<button class="fb'+(view==='event'?' on':'')+'" onclick="sf(\'rV\',\'event\')">Event Results</button>';
+  h+='<button class="fb'+(view==='evstandings'?' on':'')+'" onclick="sf(\'rV\',\'evstandings\')">Event Standings</button>';
   h+='<button class="fb'+(view==='allaround'?' on':'')+'" onclick="sf(\'rV\',\'allaround\')">All-Around Standings</button>';
   h+='</div>';
 
-  if(view==='event'){
+  if(view==='evstandings'){
+    // collect unique event labels in definition order
+    var evLabels=[],seenL={};
+    EVENTS.forEach(function(ev){ if(!seenL[ev.label]){seenL[ev.label]=true;evLabels.push(ev.label);} });
+    if(!S.rEL||!seenL[S.rEL]) S.rEL=evLabels[0];
+    var selLabel=S.rEL;
+
+    h+='<div class="flt" style="flex-wrap:wrap">';
+    evLabels.forEach(function(lbl){
+      h+='<button class="fb'+(selLabel===lbl?' on':'')+'" onclick="sf(\'rEL\',\''+lbl.replace(/\'/g,"\\'")+'\')">' +lbl+'</button>';
+    });
+    h+='</div>';
+    h+='<div class="fr np" style="margin-bottom:12px"><button class="btn bo" onclick="printEvStandings()">Print Event Standings</button></div>';
+
+    AGS.forEach(function(ag){
+      ['Girls','Boys'].forEach(function(gender){
+        var ev=EVENTS.find(function(e){return e.label===selLabel&&e.gender===gender&&e.ag===ag;});
+        if(!ev) return;
+        var cidSet={};
+        RODEOS.forEach(function(rod){((S.entries[rod.id]||{})[ev.id]||[]).forEach(function(cid){cidSet[cid]=true;});});
+        var cids=Object.keys(cidSet);
+        if(!cids.length) return;
+        var cache={};
+        RODEOS.forEach(function(rod,ri){
+          rankEv(S.entries[rod.id]||{},S.results[rod.id]||{},ev.id).forEach(function(r){
+            if(!cache[r.cid])cache[r.cid]=[0,0,0,0];
+            cache[r.cid][ri]=r.points||0;
+          });
+        });
+        var rows=cids.map(function(cid){
+          var pts=cache[cid]||[0,0,0,0];
+          return{id:cid,name:gC(cid).name,pts:pts,total:pts.reduce(function(a,b){return a+b;},0)};
+        }).sort(function(a,b){return b.total-a.total;});
+        h+='<div class="card"><div class="gh">'+gender+' &mdash; Age '+ag+'</div>';
+        h+='<table><thead><tr><th>Rank</th><th>Contestant</th>';
+        RODEOS.forEach(function(r){h+='<th>'+r.label+'</th>';});
+        h+='<th>Total</th></tr></thead><tbody>';
+        rows.forEach(function(row,i){
+          h+='<tr><td class="'+(i===0?'gd':'')+'">'+(i+1)+'</td>';
+          h+='<td style="font-weight:600">'+row.name+'</td>';
+          row.pts.forEach(function(p){h+='<td style="color:var(--mut)">'+(p||'-')+'</td>';});
+          h+='<td class="gd" style="font-size:1rem">'+(row.total||'-')+'</td></tr>';
+        });
+        h+='</tbody></table></div>';
+      });
+    });
+  } else if(view==='event'){
     h+='<div class="flt">';
     RODEOS.forEach(function(r){
       h+='<button class="fb'+(rid===r.id?' on':'')+'" onclick="sf(\'rR\',\''+r.id+'\')">'+r.label+' &mdash; '+r.date+'</button>';
@@ -844,6 +891,15 @@ async function printAllResults(){
   await loadAll();
   var w=window.open('','_blank','width=900,height=700');
   w.document.write(buildSeasonPointsDoc(S.entries,S.results,S.contestants));
+  w.document.close();
+}
+
+// ─── Print event standings ────────────────────────────────────────────────────
+async function printEvStandings(){
+  toast('Loading…');
+  await loadAll();
+  var w=window.open('','_blank','width=900,height=700');
+  w.document.write(buildEventStandingsDoc(S.rEL,S.entries,S.results,S.contestants));
   w.document.close();
 }
 

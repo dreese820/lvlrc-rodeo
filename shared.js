@@ -246,6 +246,88 @@ function buildSeasonPointsDoc(allEntries, allResults, contestants) {
     + '</body></html>';
 }
 
+// ─── Event standings document builder ───────────────────────────────────────
+// Produces a print-ready HTML document for one event label across all 4 rodeos.
+// Same columns/style as buildSeasonPointsDoc but scoped to a single event.
+function buildEventStandingsDoc(evLabel, allEntries, allResults, contestants) {
+  var cMap = {};
+  (contestants || []).forEach(function(c){ cMap[c.id] = c; });
+  var today = new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
+
+  var css = [
+    '*{box-sizing:border-box;margin:0;padding:0;}',
+    'body{font-family:Arial,sans-serif;font-size:9pt;color:#000;background:#fff;}',
+    'h1{font-size:13pt;font-weight:bold;text-align:center;text-transform:uppercase;letter-spacing:.06em;}',
+    '.sub{font-size:8.5pt;text-align:center;margin:3px 0 12px;padding-bottom:8px;border-bottom:2pt solid #000;}',
+    '.ag-block{margin-bottom:12px;break-inside:avoid;}',
+    '.ag-label{font-size:8pt;font-weight:bold;text-transform:uppercase;letter-spacing:.05em;color:#444;margin-bottom:3px;}',
+    '.sides{display:grid;grid-template-columns:1fr 1fr;gap:0 14px;}',
+    '.sides.solo{grid-template-columns:1fr;}',
+    '.side-hdr{font-size:7pt;font-weight:bold;text-transform:uppercase;letter-spacing:.06em;',
+    'background:#e8e8e8;padding:2px 4px;margin-bottom:2px;}',
+    '.no-ent{font-size:7pt;color:#999;font-style:italic;padding:3px 4px;}',
+    'table{width:100%;border-collapse:collapse;}',
+    'th{font-size:6pt;text-transform:uppercase;letter-spacing:.04em;color:#555;',
+    'border-bottom:1pt solid #ccc;padding:2px 4px;text-align:left;white-space:nowrap;}',
+    'th.r,td.r{text-align:right;}',
+    'td{font-size:7.5pt;padding:2px 4px;border-bottom:1pt dotted #e0e0e0;}',
+    'tr:last-child td{border-bottom:none;}',
+    '.t1 td{font-weight:bold;}',
+    '.rk{color:#777;font-size:6.5pt;}',
+    '@media print{body{padding:0;}@page{size:letter;margin:0.35in;}}'
+  ].join('');
+
+  function buildTable(ev) {
+    var cidSet = {};
+    RODEOS.forEach(function(rod){
+      ((allEntries[rod.id] || {})[ev.id] || []).forEach(function(cid){ cidSet[cid] = true; });
+    });
+    var cids = Object.keys(cidSet);
+    if (!cids.length) return '<div class="no-ent">No entries</div>';
+    var cache = {};
+    RODEOS.forEach(function(rod, ri){
+      rankEv(allEntries[rod.id]||{}, allResults[rod.id]||{}, ev.id).forEach(function(r){
+        if (!cache[r.cid]) cache[r.cid] = [0,0,0,0];
+        cache[r.cid][ri] = r.points || 0;
+      });
+    });
+    var rows = cids.map(function(cid){
+      var pts = cache[cid] || [0,0,0,0];
+      return {name:(cMap[cid]||{name:'?'}).name, pts:pts, total:pts.reduce(function(a,b){return a+b;},0)};
+    }).sort(function(a,b){ return b.total - a.total; });
+
+    var h = '<table><thead><tr><th>Contestant</th>';
+    RODEOS.forEach(function(r){ h += '<th class="r">' + r.date + '</th>'; });
+    h += '<th class="r">Total</th><th class="r">Rank</th></tr></thead><tbody>';
+    rows.forEach(function(row, i){
+      h += '<tr' + (i === 0 ? ' class="t1"' : '') + '><td>' + row.name + '</td>';
+      row.pts.forEach(function(p){ h += '<td class="r">' + (p || '') + '</td>'; });
+      h += '<td class="r">' + (row.total || '') + '</td><td class="r rk">' + (i + 1) + '</td></tr>';
+    });
+    return h + '</tbody></table>';
+  }
+
+  var body = '<h1>Long Valley Lions Rodeo Club</h1>';
+  body += '<div class="sub">' + evLabel + ' &mdash; Season Standings &nbsp;&bull;&nbsp; ' + today + '</div>';
+
+  AGS.forEach(function(ag){
+    var gEv = EVENTS.find(function(e){ return e.label===evLabel && e.gender==='Girls' && e.ag===ag; });
+    var bEv = EVENTS.find(function(e){ return e.label===evLabel && e.gender==='Boys'  && e.ag===ag; });
+    if (!gEv && !bEv) return;
+    var both = !!(gEv && bEv);
+    body += '<div class="ag-block"><div class="ag-label">Age ' + ag + '</div>';
+    body += '<div class="sides' + (both ? '' : ' solo') + '">';
+    if (gEv) body += '<div><div class="side-hdr">Girls</div>' + buildTable(gEv) + '</div>';
+    if (bEv) body += '<div><div class="side-hdr">Boys</div>'  + buildTable(bEv) + '</div>';
+    body += '</div></div>';
+  });
+
+  return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' + evLabel + ' Standings &mdash; Long Valley Lions</title>'
+    + '<style>' + css + '</style></head><body>' + body
+    + '<scr'+'ipt>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};</scr'+'ipt>'
+    + '</body></html>';
+}
+
 // ─── Ranking logic (identical to original) ───────────────────────────────────
 function rankEv(entries, results, eid) {
   var ev = EVENTS.find(function(e){ return e.id === eid; });
