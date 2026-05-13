@@ -239,6 +239,18 @@ function renderAdmin(){
   var aa=allAA(S.entries,S.results);
 
   var h='<h2 class="st">Admin &mdash; Contestants &amp; Entries</h2>';
+
+  h+='<div class="card"><div class="gh" style="margin-bottom:10px">Open / Close Entry Windows</div>';
+  RODEOS.forEach(function(r){
+    var open=S.settings[r.id]&&S.settings[r.id].open;
+    h+='<div class="tog">';
+    h+='<span><strong>'+r.label+'</strong> &mdash; '+r.date+'</span>';
+    h+='<span style="font-size:.82rem;color:'+(open?'#5cd08a':'#cc6666')+'">'+(open?'OPEN for entries':'CLOSED')+'</span>';
+    h+='<button class="tog-btn '+(open?'closed':'open')+'" onclick="toggleOpen(\''+r.id+'\','+(open?'false':'true')+')">'+(open?'Close Entries':'Open Entries')+'</button>';
+    h+='</div>';
+  });
+  h+='</div>';
+
   h+='<div class="card"><div class="gh" style="margin-bottom:10px">Add New Contestant</div>';
   h+='<div class="fr">';
   h+='<input type="text" id="nN" placeholder="Full Name" style="flex:1;min-width:180px">';
