@@ -13,6 +13,14 @@ module.exports = async (req, res) => {
     return res.status(401).json({ error: 'Invalid username or password' });
   }
 
-  const token = signToken({ username: username.trim() });
-  res.json({ token });
+  if (!process.env.JWT_SECRET) {
+    return res.status(500).json({ error: 'Server misconfiguration: JWT_SECRET is not set' });
+  }
+
+  try {
+    const token = signToken({ username: username.trim() });
+    res.json({ token });
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to create session' });
+  }
 };
