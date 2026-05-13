@@ -637,7 +637,7 @@ function renderResults(){
         }
         if(ev.type==='score')sc='<td>'+(r.noTime?'NS':(r.score||'-'))+'</td>';
         h+='<tr><td class="'+(r.place===1?'gd':'')+'">'+pl+'</td>';
-        h+='<td style="font-weight:600">'+r.name+(r.ll?' <span style="color:#c8920a">LL</span>':'')+'</td>';
+        h+='<td style="font-weight:600">'+gC(r.cid).name+(r.ll?' <span style="color:#c8920a">LL</span>':'')+'</td>';
         h+=sc+'<td class="gd">'+(r.points>0?r.points:'-')+'</td></tr>';
       });
       h+='</tbody></table></div>';

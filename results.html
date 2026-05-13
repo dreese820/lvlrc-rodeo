@@ -195,7 +195,7 @@ function renderEvent() {
 
       h += '<tr>';
       h += '<td class="'+(r.place===1?'gd':'')+'">'+pl+'</td>';
-      h += '<td style="font-weight:600">'+r.name+(r.ll?' <span style="color:var(--gold);font-size:.8rem">LL</span>':'')+'</td>';
+      h += '<td style="font-weight:600">'+gC(r.cid).name+(r.ll?' <span style="color:var(--gold);font-size:.8rem">LL</span>':'')+'</td>';
       h += sc;
       h += '<td class="gd">'+(r.points>0?r.points:'-')+'</td></tr>';
     });
