@@ -300,7 +300,7 @@ function buildEventStandingsDoc(evLabel, allEntries, allResults, contestants) {
     RODEOS.forEach(function(r){ h += '<th class="r">' + r.date + '</th>'; });
     h += '<th class="r">Total</th><th class="r">Rank</th></tr></thead><tbody>';
     rows.forEach(function(row, i){
-      h += '<tr' + (i === 0 ? ' class="t1"' : '') + '><td>' + row.name + '</td>';
+      h += '<tr><td>' + row.name + '</td>';
       row.pts.forEach(function(p){ h += '<td class="r">' + (p || '') + '</td>'; });
       h += '<td class="r">' + (row.total || '') + '</td><td class="r rk">' + (i + 1) + '</td></tr>';
     });

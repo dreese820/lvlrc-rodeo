@@ -647,7 +647,7 @@ function renderResults(){
         RODEOS.forEach(function(r){h+='<th>'+r.label+'</th>';});
         h+='<th>Total</th></tr></thead><tbody>';
         rows.forEach(function(row,i){
-          h+='<tr><td class="'+(i===0?'gd':'')+'">'+(i+1)+'</td>';
+          h+='<tr><td>'+(i+1)+'</td>';
           h+='<td style="font-weight:600">'+row.name+'</td>';
           row.pts.forEach(function(p){h+='<td style="color:var(--mut)">'+(p||'-')+'</td>';});
           h+='<td class="gd" style="font-size:1rem">'+(row.total||'-')+'</td></tr>';
