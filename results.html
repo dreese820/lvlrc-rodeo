@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Standings — Long Valley Lions Rodeo Club</title>
+<style>
+:root{--gold:#c8920a;--gl:rgba(200,146,10,0.15);--bg:#0d0d0d;--bg3:#1a1a1a;--bdr:#2a2a2a;--bdr2:#3a3a3a;--txt:#e8e0d0;--mut:#8a7a5a;--dim:#555;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--txt);font-family:Georgia,'Times New Roman',serif;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background-image:repeating-linear-gradient(45deg,rgba(200,146,10,.025) 0,rgba(200,146,10,.025) 1px,transparent 1px,transparent 60px);}
+header{background:linear-gradient(135deg,#1a0f00,#0d0d0d 50%,#001a0d);border-bottom:2px solid var(--gold);padding:14px 20px;text-align:center;}
+.lm{font-size:1.3rem;font-weight:700;letter-spacing:.12em;color:var(--gold);}
+.ls{font-size:.65rem;color:var(--mut);letter-spacing:.2em;text-transform:uppercase;margin-top:3px;}
+nav{background:#111;border-bottom:1px solid var(--bdr);display:flex;gap:4px;padding:8px 20px;justify-content:center;flex-wrap:wrap;}
+.nb{background:transparent;border:none;color:var(--mut);padding:7px 14px;border-radius:6px;cursor:pointer;font-size:.83rem;font-family:inherit;}
+.nb.on{background:rgba(200,146,10,.18);color:var(--gold);font-weight:700;}
+main{position:relative;z-index:1;max-width:1000px;margin:0 auto;padding:24px 20px;}
+.card{background:rgba(255,255,255,.03);border:1px solid var(--bdr);border-radius:10px;padding:16px 18px;margin-bottom:14px;}
+.st{font-size:1.2rem;font-weight:700;color:var(--gold);letter-spacing:.05em;margin-bottom:16px;}
+.gh{font-weight:700;color:var(--gold);font-size:.8rem;letter-spacing:.1em;margin-bottom:10px;text-transform:uppercase;}
+.gt{font-size:1rem;color:var(--gold);margin:20px 0 10px;}
+.flt{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px;}
+.fb{background:rgba(255,255,255,.04);border:1px solid var(--bdr);color:var(--mut);border-radius:6px;padding:5px 13px;cursor:pointer;font-family:inherit;font-size:.8rem;}
+.fb.on{background:rgba(200,146,10,.2);border-color:rgba(200,146,10,.5);color:var(--gold);font-weight:700;}
+.eb{background:var(--gl);border:1px solid rgba(200,146,10,.3);color:var(--gold);border-radius:5px;padding:3px 10px;font-size:.78rem;font-weight:700;display:inline-block;margin-bottom:10px;}
+table{width:100%;border-collapse:collapse;font-size:.87rem;margin-top:6px;}
+th{text-align:left;padding:6px 10px;border-bottom:1px solid var(--bdr);color:var(--dim);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;}
+td{padding:7px 10px;}
+tr:nth-child(even) td{background:rgba(200,146,10,.03);}
+.gd{color:var(--gold);font-weight:700;}
+.ibox{background:rgba(200,146,10,.07);border:1px solid rgba(200,146,10,.25);border-radius:8px;padding:12px 16px;margin-bottom:16px;}
+.empty{color:var(--dim);font-style:italic;text-align:center;padding:20px 0;}
+.links{text-align:center;margin-top:20px;font-size:.82rem;}
+.links a{color:var(--gold);text-decoration:none;}
+</style>
+</head>
+<body>
+<header>
+  <div class="lm">LONG VALLEY LIONS</div>
+  <div class="ls">Rodeo Club · 2025 Standings</div>
+</header>
+<nav id="nav"></nav>
+<main id="main"><div class="empty" style="padding:60px 0">Loading…</div></main>
+<div class="links"><a href="/enter">Enter Online</a></div>
+
+<script src="/shared.js"></script>
+<script>
+var view = 'allaround';   // 'allaround' | 'event'
+var selRodeo = 'r1';
+var selGender = 'Girls';
+var selAge = '0-5';
+
+var contestants = [];
+var allEntries = {};
+var allResults = {};
+
+async function init() {
+  try {
+    var [c, e, r] = await Promise.all([
+      fetch('/api/contestants').then(function(r){return r.json();}),
+      fetch('/api/entries').then(function(r){return r.json();}),
+      fetch('/api/results').then(function(r){return r.json();})
+    ]);
+    contestants = c || [];
+    allEntries  = e || {};
+    allResults  = r || {};
+    render();
+  } catch(err) {
+    document.getElementById('main').innerHTML = '<div class="empty" style="padding:60px 0;color:#cc6666">Could not load standings.</div>';
+  }
+}
+
+function gC(id){ return contestants.find(function(c){return c.id===id;})||{name:'?'}; }
+
+function sf(k,v){
+  if(k==='view') view=v;
+  else if(k==='rod') selRodeo=v;
+  else if(k==='gender') selGender=v;
+  else if(k==='age') selAge=v;
+  render();
+}
+
+function render() {
+  renderNav();
+  var m = document.getElementById('main');
+  if (view === 'allaround') m.innerHTML = renderAllAround();
+  else m.innerHTML = renderEvent();
+}
+
+function renderNav() {
+  var rodLabel = RODEOS.find(function(r){return r.id===selRodeo;});
+  var h = '';
+  h += '<button class="nb'+(view==='allaround'?' on':'')+'" onclick="sf(\'view\',\'allaround\')">All-Around Standings</button>';
+  h += '<button class="nb'+(view==='event'?' on':'')+'" onclick="sf(\'view\',\'event\')">Event Results</button>';
+  document.getElementById('nav').innerHTML = h;
+}
+
+function renderAllAround() {
+  var aa = allAA(allEntries, allResults);
+  var h = '<h2 class="st">All-Around Standings</h2>';
+  h += '<div class="ibox">Cumulative points across all 4 rodeos. Updated after each rodeo.</div>';
+
+  ['Girls','Boys'].forEach(function(gen){
+    h += '<h3 class="gt">'+gen+'</h3>';
+    AGS.forEach(function(ag){
+      var list = contestants
+        .filter(function(c){ return c.gender===gen && c.ageGroup===ag && (aa[c.id]||0)>0; })
+        .map(function(c){ return {id:c.id,name:c.name,total:aa[c.id]||0}; })
+        .sort(function(a,b){ return b.total-a.total; });
+
+      if (!list.length) return;
+
+      h += '<div class="card"><div class="gh">'+gen+' &mdash; Age '+ag+'</div>';
+      h += '<table><thead><tr><th>Rank</th><th>Contestant</th>';
+      RODEOS.forEach(function(r){ h+='<th>'+r.label+'</th>'; });
+      h += '<th>Total</th></tr></thead><tbody>';
+
+      list.forEach(function(c, li){
+        var rts = RODEOS.map(function(rod){
+          var t = 0;
+          var rEnt = allEntries[rod.id]||{};
+          var rRes = allResults[rod.id]||{};
+          EVENTS.forEach(function(ev){
+            rankEv(rEnt,rRes,ev.id).forEach(function(r){
+              if(r.cid===c.id) t+=r.points||0;
+            });
+          });
+          return t;
+        });
+        h += '<tr>';
+        h += '<td class="'+(li===0?'gd':'')+'">'+(li+1)+'</td>';
+        h += '<td style="font-weight:600">'+c.name+'</td>';
+        rts.forEach(function(t){ h+='<td style="color:var(--mut)">'+(t||'-')+'</td>'; });
+        h += '<td class="gd" style="font-size:1rem">'+c.total+'</td></tr>';
+      });
+
+      h += '</tbody></table></div>';
+    });
+  });
+
+  if (!contestants.length) h += '<div class="empty">No results posted yet.</div>';
+  return h;
+}
+
+function renderEvent() {
+  var h = '<h2 class="st">Event Results</h2>';
+
+  // Rodeo picker
+  h += '<div class="flt">';
+  RODEOS.forEach(function(r){
+    h += '<button class="fb'+(selRodeo===r.id?' on':'')+'" onclick="sf(\'rod\',\''+r.id+'\')">'+r.label+' &mdash; '+r.date+'</button>';
+  });
+  h += '</div>';
+
+  // Gender filter
+  h += '<div class="flt">';
+  ['Girls','Boys'].forEach(function(g){
+    h += '<button class="fb'+(selGender===g?' on':'')+'" onclick="sf(\'gender\',\''+g+'\')">'+g+'</button>';
+  });
+  h += '<span style="width:12px;display:inline-block"></span>';
+  AGS.forEach(function(ag){
+    h += '<button class="fb'+(selAge===ag?' on':'')+'" onclick="sf(\'age\',\''+ag+'\')">'+ag+'</button>';
+  });
+  h += '</div>';
+
+  var rEnt = allEntries[selRodeo]||{};
+  var rRes = allResults[selRodeo]||{};
+  var evs = EVENTS.filter(function(e){ return e.gender===selGender && e.ag===selAge; });
+  var any = false;
+
+  evs.forEach(function(ev){
+    var ranked = rankEv(rEnt, rRes, ev.id);
+    if (!ranked.length) return;
+    any = true;
+
+    h += '<div class="card"><div class="eb">'+ev.label+'</div>';
+    h += '<table><thead><tr><th>Place</th><th>Contestant</th>';
+    if(ev.type==='loops') h += '<th>Catches</th><th>Total</th>';
+    if(ev.type==='time')  h += '<th>Time</th><th>Pen</th><th>Total</th>';
+    if(ev.type==='score') h += '<th>Score</th>';
+    h += '<th>Pts</th></tr></thead><tbody>';
+
+    ranked.forEach(function(r){
+      var pl = r.place ? (r.place+(r.ll?' LL':'')) : (r.ll?'LL':'NT');
+      var sc = '';
+      if(ev.type==='loops') sc='<td>'+r.loopCount+'</td><td style="font-family:monospace">'+(r.loopTotal||'-')+'</td>';
+      if(ev.type==='time'){
+        var tv=parseFloat(r.time)||0, pv=parseFloat(r.pen)||0;
+        var tot=r.noTime?'NT':(tv>0?(tv+pv).toFixed(3):'-');
+        sc='<td style="font-family:monospace">'+(r.noTime?'NT':(r.time||'-'))+'</td><td>'+(r.pen||'-')+'</td><td class="gd" style="font-family:monospace">'+tot+'</td>';
+      }
+      if(ev.type==='score') sc='<td>'+(r.noTime?'NS':(r.score||'-'))+'</td>';
+
+      h += '<tr>';
+      h += '<td class="'+(r.place===1?'gd':'')+'">'+pl+'</td>';
+      h += '<td style="font-weight:600">'+r.name+(r.ll?' <span style="color:var(--gold);font-size:.8rem">LL</span>':'')+'</td>';
+      h += sc;
+      h += '<td class="gd">'+(r.points>0?r.points:'-')+'</td></tr>';
+    });
+
+    h += '</tbody></table></div>';
+  });
+
+  if (!any) h += '<div class="empty">No results posted for this selection yet.</div>';
+  return h;
+}
+
+init();
+</script>
+</body>
+</html>

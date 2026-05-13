@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Login — Long Valley Lions Rodeo Club</title>
+<style>
+:root{--gold:#c8920a;--bg:#0d0d0d;--bg3:#1a1a1a;--bdr2:#3a3a3a;--txt:#e8e0d0;--mut:#8a7a5a;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--txt);font-family:Georgia,'Times New Roman',serif;min-height:100vh;display:flex;align-items:center;justify-content:center;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;background-image:repeating-linear-gradient(45deg,rgba(200,146,10,.025) 0,rgba(200,146,10,.025) 1px,transparent 1px,transparent 60px);}
+.box{background:rgba(255,255,255,.03);border:1px solid #2a2a2a;border-radius:12px;padding:40px 36px;width:100%;max-width:380px;position:relative;z-index:1;}
+.logo{text-align:center;margin-bottom:28px;}
+.lm{font-size:1.3rem;font-weight:700;letter-spacing:.12em;color:var(--gold);}
+.ls{font-size:.65rem;color:var(--mut);letter-spacing:.2em;text-transform:uppercase;margin-top:4px;}
+label{display:block;font-size:.8rem;color:var(--mut);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px;}
+input{width:100%;background:var(--bg3);border:1px solid var(--bdr2);color:var(--txt);border-radius:6px;padding:10px 12px;font-family:inherit;font-size:.95rem;margin-bottom:16px;}
+input:focus{outline:1px solid var(--gold);}
+.btn{width:100%;background:linear-gradient(135deg,var(--gold),#a07008);color:#fff;border:none;border-radius:6px;padding:11px;cursor:pointer;font-family:inherit;font-weight:700;font-size:.95rem;margin-top:4px;}
+.btn:hover{opacity:.9;}
+.err{color:#cc6666;font-size:.85rem;text-align:center;margin-top:12px;display:none;}
+.links{text-align:center;margin-top:20px;font-size:.8rem;}
+.links a{color:var(--gold);text-decoration:none;}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="logo">
+    <div class="lm">LONG VALLEY LIONS</div>
+    <div class="ls">Rodeo Club · Admin Login</div>
+  </div>
+  <form id="frm">
+    <label for="u">Username</label>
+    <input id="u" type="text" autocomplete="username" required>
+    <label for="p">Password</label>
+    <input id="p" type="password" autocomplete="current-password" required>
+    <button class="btn" type="submit">Sign In</button>
+    <div class="err" id="err"></div>
+  </form>
+  <div class="links">
+    <a href="/enter">Public Entry Form</a> &nbsp;&bull;&nbsp; <a href="/standings">View Standings</a>
+  </div>
+</div>
+<script>
+document.getElementById('frm').addEventListener('submit', async function(e){
+  e.preventDefault();
+  var btn = this.querySelector('button');
+  var errEl = document.getElementById('err');
+  btn.textContent = 'Signing in…';
+  btn.disabled = true;
+  errEl.style.display = 'none';
+  try {
+    var res = await fetch('/api/auth', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({username: document.getElementById('u').value, password: document.getElementById('p').value})
+    });
+    var data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Login failed');
+    localStorage.setItem('adminToken', data.token);
+    window.location.href = '/admin';
+  } catch(err) {
+    errEl.textContent = err.message;
+    errEl.style.display = 'block';
+    btn.textContent = 'Sign In';
+    btn.disabled = false;
+  }
+});
+// Redirect if already logged in
+if (localStorage.getItem('adminToken')) window.location.href = '/admin';
+</script>
+</body>
+</html>

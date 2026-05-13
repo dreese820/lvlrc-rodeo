@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enter Online — Long Valley Lions Rodeo Club</title>
+<style>
+:root{--gold:#c8920a;--gold-dim:#a07008;--gl:rgba(200,146,10,0.15);--bg:#0d0d0d;--bg3:#1a1a1a;--bdr:#2a2a2a;--bdr2:#3a3a3a;--txt:#e8e0d0;--mut:#8a7a5a;--dim:#555;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--txt);font-family:Georgia,'Times New Roman',serif;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background-image:repeating-linear-gradient(45deg,rgba(200,146,10,.025) 0,rgba(200,146,10,.025) 1px,transparent 1px,transparent 60px);}
+header{background:linear-gradient(135deg,#1a0f00,#0d0d0d 50%,#001a0d);border-bottom:2px solid var(--gold);padding:14px 20px;text-align:center;}
+.lm{font-size:1.3rem;font-weight:700;letter-spacing:.12em;color:var(--gold);}
+.ls{font-size:.65rem;color:var(--mut);letter-spacing:.2em;text-transform:uppercase;margin-top:3px;}
+main{position:relative;z-index:1;max-width:640px;margin:0 auto;padding:28px 20px;}
+.card{background:rgba(255,255,255,.03);border:1px solid var(--bdr);border-radius:10px;padding:20px 22px;margin-bottom:16px;}
+.st{font-size:1.2rem;font-weight:700;color:var(--gold);letter-spacing:.05em;margin-bottom:16px;}
+.fl{display:flex;flex-direction:column;gap:12px;}
+label.lbl{font-size:.78rem;color:var(--mut);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:4px;}
+input[type=text],select{width:100%;background:var(--bg3);border:1px solid var(--bdr2);color:var(--txt);border-radius:6px;padding:10px 12px;font-family:inherit;font-size:.95rem;}
+input[type=text]:focus,select:focus{outline:1px solid var(--gold);}
+.gh{font-weight:700;color:var(--gold);font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;margin:18px 0 10px;border-bottom:1px solid var(--bdr);padding-bottom:6px;}
+.cg{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.cl{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:7px;cursor:pointer;border:1px solid transparent;font-size:.88rem;transition:background .15s;}
+.cl:hover{background:rgba(200,146,10,.06);}
+.cl.on{background:rgba(200,146,10,.12);border-color:rgba(200,146,10,.3);}
+.cl.blk{opacity:.4;cursor:not-allowed;}
+input[type=checkbox]{accent-color:var(--gold);width:16px;height:16px;cursor:pointer;flex-shrink:0;}
+.btn{width:100%;background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#fff;border:none;border-radius:8px;padding:13px;cursor:pointer;font-family:inherit;font-weight:700;font-size:1rem;margin-top:8px;transition:opacity .2s;}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+.btn:hover:not(:disabled){opacity:.9;}
+.msg{border-radius:8px;padding:14px 18px;margin-bottom:16px;font-size:.9rem;}
+.msg.ok{background:rgba(30,140,60,.2);border:1px solid rgba(30,140,60,.4);color:#5cd08a;}
+.msg.err{background:rgba(180,30,30,.2);border:1px solid rgba(170,34,34,.4);color:#cc6666;}
+.msg.info{background:rgba(200,146,10,.1);border:1px solid rgba(200,146,10,.3);color:var(--gold);}
+.note{font-size:.78rem;color:var(--mut);margin-top:6px;}
+.closed-box{text-align:center;padding:40px 20px;}
+.closed-box .icon{font-size:3rem;margin-bottom:16px;}
+.links{text-align:center;margin-top:20px;font-size:.82rem;}
+.links a{color:var(--gold);text-decoration:none;}
+</style>
+</head>
+<body>
+<header>
+  <div class="lm">LONG VALLEY LIONS</div>
+  <div class="ls">Rodeo Club · Online Entry</div>
+</header>
+<main id="main">
+  <div style="text-align:center;padding:60px 0;color:var(--mut)">Loading…</div>
+</main>
+
+<script src="/shared.js"></script>
+<script>
+var settings = {};
+var selectedRodeo = null;
+var selectedEvents = {};  // eventId -> true
+
+async function init() {
+  try {
+    var res = await fetch('/api/settings');
+    settings = await res.json();
+    render();
+  } catch(e) {
+    document.getElementById('main').innerHTML = '<div class="msg err">Could not load entry form. Please try again later.</div>';
+  }
+}
+
+function openRodeos() {
+  return RODEOS.filter(function(r){ return settings[r.id] && settings[r.id].open; });
+}
+
+function render() {
+  var open = openRodeos();
+  var m = document.getElementById('main');
+
+  if (!open.length) {
+    m.innerHTML = '<div class="closed-box"><div class="icon">🤠</div>' +
+      '<div class="st" style="text-align:center">Online Entry is Closed</div>' +
+      '<p style="color:var(--mut);margin-bottom:20px">Entry windows are not open right now. Check back closer to the next rodeo date.</p>' +
+      '<div class="links"><a href="/standings">View Standings</a></div></div>';
+    return;
+  }
+
+  // If selectedRodeo not in open list, default to first open
+  if (!selectedRodeo || !open.find(function(r){return r.id===selectedRodeo;})) {
+    selectedRodeo = open[0].id;
+  }
+
+  var h = '';
+
+  // Rodeo picker (if more than one open)
+  if (open.length > 1) {
+    h += '<div class="card"><div class="gh" style="margin-top:0">Select Rodeo</div>';
+    h += '<div style="display:flex;gap:8px;flex-wrap:wrap">';
+    open.forEach(function(r){
+      h += '<button style="flex:1;min-width:120px;padding:10px;border-radius:7px;cursor:pointer;font-family:inherit;font-size:.88rem;font-weight:700;' +
+        (selectedRodeo===r.id
+          ? 'background:rgba(200,146,10,.25);border:1px solid var(--gold);color:var(--gold);'
+          : 'background:rgba(255,255,255,.04);border:1px solid var(--bdr);color:var(--mut);') +
+        '" onclick="pickRodeo(\''+r.id+'\')">'+r.label+'<br><span style="font-weight:400;font-size:.75rem">'+r.date+'</span></button>';
+    });
+    h += '</div></div>';
+  }
+
+  var rod = RODEOS.find(function(r){return r.id===selectedRodeo;});
+
+  h += '<div class="card">';
+  h += '<div class="st">'+rod.label+' &mdash; '+rod.date+'</div>';
+  h += '<div id="msgBox"></div>';
+  h += '<div class="fl">';
+  h += '<div><label class="lbl" for="eName">Full Name</label><input type="text" id="eName" placeholder="First Last" autocomplete="name"></div>';
+  h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">';
+  h += '<div><label class="lbl" for="eGender">Gender</label>';
+  h += '<select id="eGender" onchange="onGenderAge()"><option>Girls</option><option>Boys</option></select></div>';
+  h += '<div><label class="lbl" for="eAge">Age Group</label>';
+  h += '<select id="eAge" onchange="onGenderAge()">';
+  AGS.forEach(function(a){h+='<option>'+a+'</option>';});
+  h += '</select></div></div>';
+  h += '</div>';
+  h += '<div id="eventSection"></div>';
+  h += '<button class="btn" id="submitBtn" onclick="submitEntry()">Submit Entry</button>';
+  h += '<p class="note">To remove an entry after submitting, contact the club secretary.</p>';
+  h += '</div>';
+
+  h += '<div class="links"><a href="/standings">View Standings</a></div>';
+
+  m.innerHTML = h;
+  onGenderAge();
+}
+
+function pickRodeo(id) {
+  selectedRodeo = id;
+  selectedEvents = {};
+  render();
+}
+
+function onGenderAge() {
+  var g = document.getElementById('eGender').value;
+  var ag = document.getElementById('eAge').value;
+  selectedEvents = {};
+  renderEvents(g, ag);
+}
+
+function renderEvents(g, ag) {
+  var evs = EVENTS.filter(function(e){ return e.gender===g && e.ag===ag; });
+  var sec = document.getElementById('eventSection');
+  if (!sec) return;
+
+  var h = '<div class="gh">Select Events</div>';
+  if (ag === '0-5') {
+    h += '<div class="msg info" style="margin-bottom:12px">Age 0–5: check "Lead Line" below if your child needs an adult to lead their horse.</div>';
+    h += '<label class="cl" style="margin-bottom:10px" id="llLabel">';
+    h += '<input type="checkbox" id="llCheck"> <span>Lead Line (LL) — adult-led</span></label>';
+  }
+  h += '<div class="cg">';
+  evs.forEach(function(ev){
+    var checked = !!selectedEvents[ev.id];
+    var blocked = false;
+    // Team roping: block partner
+    if (ev.label.indexOf('Team Roping') >= 0) {
+      var isH = ev.label.indexOf('Header') >= 0;
+      var pLabel = isH ? 'Team Roping (Heeler)' : 'Team Roping (Header)';
+      var partner = evs.find(function(e){ return e.label === pLabel; });
+      if (partner && selectedEvents[partner.id]) blocked = true;
+    }
+    h += '<label class="cl'+(checked?' on':'')+(blocked?' blk':'')+'" id="cl_'+ev.id+'">';
+    h += '<input type="checkbox"'+(checked?' checked':'')+(blocked?' disabled':'')+' id="chk_'+ev.id+'" onchange="toggleEvent(\''+ev.id+'\')">';
+    h += '<span>'+ev.label+'</span></label>';
+  });
+  h += '</div>';
+  sec.innerHTML = h;
+}
+
+function toggleEvent(eid) {
+  var g = document.getElementById('eGender').value;
+  var ag = document.getElementById('eAge').value;
+  var ev = EVENTS.find(function(e){ return e.id===eid; });
+
+  if (selectedEvents[eid]) {
+    delete selectedEvents[eid];
+  } else {
+    // Block team roping partner
+    if (ev && ev.label.indexOf('Team Roping') >= 0) {
+      var isH = ev.label.indexOf('Header') >= 0;
+      var pLabel = isH ? 'Team Roping (Heeler)' : 'Team Roping (Header)';
+      var partner = EVENTS.find(function(e){ return e.gender===g&&e.ag===ag&&e.label===pLabel; });
+      if (partner && selectedEvents[partner.id]) {
+        showMsg('You cannot enter both Header and Heeler in Team Roping.', 'err');
+        document.getElementById('chk_'+eid).checked = false;
+        return;
+      }
+    }
+    selectedEvents[eid] = true;
+  }
+  renderEvents(g, ag);
+}
+
+function showMsg(text, type) {
+  var el = document.getElementById('msgBox');
+  if (!el) return;
+  el.innerHTML = '<div class="msg '+type+'">'+text+'</div>';
+}
+
+async function submitEntry() {
+  var name = (document.getElementById('eName').value || '').trim();
+  var gender = document.getElementById('eGender').value;
+  var ag = document.getElementById('eAge').value;
+  var eventIds = Object.keys(selectedEvents);
+  var llEl = document.getElementById('llCheck');
+  var isLL = llEl ? llEl.checked : false;
+
+  if (!name) { showMsg('Please enter your full name.', 'err'); return; }
+  if (!eventIds.length) { showMsg('Please select at least one event.', 'err'); return; }
+
+  var btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Submitting…';
+  showMsg('', '');
+
+  try {
+    var res = await fetch('/api/public-entry', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        rodeoId: selectedRodeo,
+        name: name,
+        gender: gender,
+        ageGroup: ag,
+        eventIds: eventIds,
+        isLL: isLL
+      })
+    });
+    var data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Submission failed');
+
+    var rod = RODEOS.find(function(r){return r.id===selectedRodeo;});
+    var evLabels = eventIds.map(function(eid){
+      var e = EVENTS.find(function(x){return x.id===eid;});
+      return e ? e.label : eid;
+    }).join(', ');
+
+    document.getElementById('main').innerHTML =
+      '<div class="card" style="text-align:center;padding:32px">' +
+      '<div style="font-size:2.5rem;margin-bottom:16px">🤠</div>' +
+      '<div class="st" style="text-align:center;color:#5cd08a">Entry Submitted!</div>' +
+      '<p style="margin-bottom:12px"><strong>'+name+'</strong> is entered for <strong>'+rod.label+'</strong></p>' +
+      '<p style="color:var(--mut);font-size:.88rem;margin-bottom:6px">Events: '+evLabels+'</p>' +
+      (isLL?'<p style="color:var(--mut);font-size:.85rem">Marked as Lead Line</p>':'')+
+      '<p class="note" style="margin-top:16px">To make changes, contact the club secretary.</p>' +
+      '<div class="links" style="margin-top:20px"><a href="/standings">View Standings</a></div>' +
+      '</div>';
+  } catch(e) {
+    showMsg(e.message, 'err');
+    btn.disabled = false;
+    btn.textContent = 'Submit Entry';
+  }
+}
+
+init();
+</script>
+</body>
+</html>

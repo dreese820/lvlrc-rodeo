@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Long Valley Lions Rodeo Club — Admin</title>
+<style>
+:root{--gold:#c8920a;--gold-dim:#a07008;--gl:rgba(200,146,10,0.15);--bg:#0d0d0d;--bg3:#1a1a1a;--bdr:#2a2a2a;--bdr2:#3a3a3a;--txt:#e8e0d0;--mut:#8a7a5a;--dim:#555;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--txt);font-family:Georgia,'Times New Roman',serif;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background-image:repeating-linear-gradient(45deg,rgba(200,146,10,.025) 0,rgba(200,146,10,.025) 1px,transparent 1px,transparent 60px);}
+header{position:sticky;top:0;z-index:100;background:linear-gradient(135deg,#1a0f00,#0d0d0d 50%,#001a0d);border-bottom:2px solid var(--gold);padding:12px 20px;}
+.hdr{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+.lm{font-size:1.2rem;font-weight:700;letter-spacing:.12em;color:var(--gold);}
+.ls{font-size:.65rem;color:var(--mut);letter-spacing:.2em;text-transform:uppercase;}
+.rps{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto;}
+.rp{background:rgba(200,146,10,.08);border:1px solid rgba(200,146,10,.25);color:var(--mut);border-radius:6px;padding:5px 10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px;font-family:inherit;transition:all .2s;}
+.rp.on{background:rgba(200,146,10,.25);border-color:var(--gold);color:var(--gold);}
+.rp span:first-child{font-size:.72rem;font-weight:700;}
+.rp span:last-child{font-size:.6rem;opacity:.8;}
+.logout{background:rgba(180,30,30,.15);border:1px solid rgba(170,34,34,.25);color:#cc6666;border-radius:6px;padding:5px 12px;cursor:pointer;font-family:inherit;font-size:.75rem;}
+nav{background:#111;border-bottom:1px solid var(--bdr);display:flex;gap:2px;padding:6px 20px;position:sticky;top:69px;z-index:99;}
+.nb{background:transparent;border:none;color:var(--mut);padding:8px 16px;border-radius:6px;cursor:pointer;font-size:.83rem;font-family:inherit;transition:all .2s;}
+.nb.on{background:rgba(200,146,10,.18);color:var(--gold);font-weight:700;}
+main{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:24px 20px;}
+.card{background:rgba(255,255,255,.03);border:1px solid var(--bdr);border-radius:10px;padding:16px 18px;margin-bottom:14px;}
+.st{font-size:1.25rem;font-weight:700;color:var(--gold);letter-spacing:.05em;margin-bottom:18px;border-bottom:1px solid var(--bdr);padding-bottom:10px;}
+.gh{font-weight:700;color:var(--gold);font-size:.8rem;letter-spacing:.1em;margin-bottom:10px;text-transform:uppercase;}
+.gt{font-size:1rem;color:var(--gold);margin:20px 0 10px;}
+input[type=text],select{background:var(--bg3);border:1px solid var(--bdr2);color:var(--txt);border-radius:6px;padding:7px 10px;font-family:inherit;font-size:.88rem;}
+input[type=text]:focus,select:focus{outline:1px solid var(--gold);}
+select{cursor:pointer;}
+.btn{border:none;border-radius:6px;padding:8px 16px;cursor:pointer;font-family:inherit;font-weight:700;font-size:.88rem;}
+.bg{background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:#fff;}
+.bo{background:rgba(200,146,10,.12);border:1px solid rgba(200,146,10,.35);color:var(--gold);}
+.bd{background:rgba(180,30,30,.2);border:1px solid rgba(170,34,34,.3);color:#cc6666;padding:3px 10px;font-size:.8rem;}
+.bs{padding:4px 12px;font-size:.78rem;}
+.flt{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px;}
+.fb{background:rgba(255,255,255,.04);border:1px solid var(--bdr);color:var(--mut);border-radius:6px;padding:5px 13px;cursor:pointer;font-family:inherit;font-size:.8rem;}
+.fb.on{background:rgba(200,146,10,.2);border-color:rgba(200,146,10,.5);color:var(--gold);font-weight:700;}
+.eb{background:var(--gl);border:1px solid rgba(200,146,10,.3);color:var(--gold);border-radius:5px;padding:3px 10px;font-size:.78rem;font-weight:700;display:inline-block;}
+table{width:100%;border-collapse:collapse;font-size:.87rem;margin-top:8px;}
+th{text-align:left;padding:6px 10px;border-bottom:1px solid var(--bdr);color:var(--dim);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;}
+td{padding:7px 10px;}
+tr:nth-child(even) td{background:rgba(200,146,10,.03);}
+.gd{color:var(--gold);font-weight:700;}
+.fr{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+.cg{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:5px;margin-top:8px;}
+.cl{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;cursor:pointer;border:1px solid transparent;font-size:.87rem;}
+.cl.on{background:rgba(200,146,10,.1);border-color:rgba(200,146,10,.3);}
+.cl.blk{opacity:.4;cursor:not-allowed;}
+input[type=checkbox]{accent-color:var(--gold);width:15px;height:15px;cursor:pointer;}
+.sr{display:flex;align-items:center;gap:6px;padding:6px 4px;font-size:.85rem;}
+.sr:nth-child(even){background:rgba(255,255,255,.025);}
+.sh{display:flex;align-items:center;gap:6px;padding:5px 4px;color:var(--dim);font-size:.72rem;font-weight:700;text-transform:uppercase;border-bottom:1px solid var(--bdr);margin-bottom:4px;}
+.si{width:76px;background:var(--bg3);border:1px solid var(--bdr2);color:var(--txt);border-radius:5px;padding:4px 6px;font-size:.85rem;text-align:center;font-family:monospace;}
+.si:focus{outline:1px solid var(--gold);}
+.sn{width:28px;text-align:center;color:var(--gold);font-weight:700;}
+.nm{flex:1;font-weight:600;min-width:120px;}
+.sc{width:84px;text-align:center;font-size:.82rem;}
+.sk{width:46px;text-align:center;}
+.dr{display:flex;align-items:center;gap:10px;padding:5px 8px;}
+.dr:nth-child(even){background:rgba(200,146,10,.05);}
+.dn{width:28px;text-align:center;color:var(--gold);font-weight:700;}
+.tog{display:flex;align-items:center;gap:8px;padding:8px 14px;background:rgba(200,146,10,.07);border:1px solid rgba(200,146,10,.2);border-radius:8px;margin-bottom:8px;font-size:.87rem;}
+.tog span{flex:1;}
+.tog-btn{border:none;border-radius:5px;padding:4px 14px;cursor:pointer;font-family:inherit;font-size:.8rem;font-weight:700;}
+.tog-btn.open{background:rgba(30,140,60,.25);border:1px solid rgba(30,140,60,.4);color:#5cd08a;}
+.tog-btn.closed{background:rgba(180,30,30,.2);border:1px solid rgba(170,34,34,.3);color:#cc6666;}
+#toast{position:fixed;top:80px;right:20px;z-index:999;padding:10px 20px;border-radius:8px;color:#fff;font-weight:600;font-size:.88rem;display:none;box-shadow:0 4px 20px rgba(0,0,0,.5);font-family:Georgia,serif;}
+.empty{color:var(--dim);font-style:italic;text-align:center;padding:20px 0;}
+.ibox{background:rgba(200,146,10,.07);border:1px solid rgba(200,146,10,.25);border-radius:8px;padding:12px 16px;margin-bottom:16px;}
+.ll{color:var(--mut);font-style:italic;font-size:.75rem;margin-left:6px;}
+.ph{display:none;}
+.np{}
+.spin{opacity:.5;pointer-events:none;}
+@media print{
+  body{background:#fff !important;color:#000 !important;font-family:Arial,sans-serif;}
+  body::before{display:none;}
+  header,nav,#toast,.np{display:none !important;}
+  main{padding:0 !important;max-width:100% !important;}
+  .ph{display:block;text-align:center;margin-bottom:16px;border-bottom:2px solid #000;padding-bottom:8px;}
+  .pc{font-size:1.3rem;font-weight:700;text-transform:uppercase;}
+  .pi{font-size:.9rem;margin-top:4px;color:#333;}
+  .card{background:#fff !important;border:1px solid #bbb !important;border-radius:0 !important;}
+  .eb{background:#eee !important;color:#000 !important;border:1px solid #999 !important;}
+  .st,.gt,.gh{color:#000 !important;}
+  .si{border:none !important;border-bottom:1px solid #888 !important;background:transparent !important;color:#000 !important;border-radius:0 !important;}
+  .sr{border-bottom:1px solid #eee;}
+  .sh{border-bottom:2px solid #000 !important;color:#000 !important;}
+  .sn,.nm,.sc,.sk,.gd{color:#000 !important;}
+  .dr{border-bottom:1px solid #eee;}
+  .dn{color:#000 !important;}
+  .flt,.btn,.fb,.np{display:none !important;}
+  .card{page-break-inside:avoid;margin-bottom:12px;}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="hdr">
+    <div><div class="lm">LONG VALLEY LIONS</div><div class="ls">Rodeo Club · Admin</div></div>
+    <div class="rps" id="rps"></div>
+    <button class="logout" onclick="logout()">Sign Out</button>
+  </div>
+</header>
+<nav>
+  <button class="nb on" id="t-admin" onclick="go('admin')">Admin</button>
+  <button class="nb" id="t-entries" onclick="go('entries')">Entries</button>
+  <button class="nb" id="t-draw" onclick="go('draw')">Draw</button>
+  <button class="nb" id="t-secretary" onclick="go('secretary')">Secretary</button>
+  <button class="nb" id="t-results" onclick="go('results')">Results</button>
+  <button class="nb" id="t-settings" onclick="go('settings')">Settings</button>
+</nav>
+<div id="toast"></div>
+<main id="main"><div class="empty" style="padding:60px 0">Loading…</div></main>
+
+<script src="/shared.js"></script>
+<script>
+// ─── Auth ─────────────────────────────────────────────────────────────────────
+var TOKEN = localStorage.getItem('adminToken');
+if (!TOKEN) window.location.href = '/login';
+
+function logout() {
+  localStorage.removeItem('adminToken');
+  window.location.href = '/login';
+}
+
+// ─── API ──────────────────────────────────────────────────────────────────────
+async function api(method, path, body) {
+  var opts = { method: method, headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN } };
+  if (body !== undefined) opts.body = JSON.stringify(body);
+  var res = await fetch('/api' + path, opts);
+  if (res.status === 401) { logout(); return null; }
+  var data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Request failed');
+  return data;
+}
+
+// ─── State ────────────────────────────────────────────────────────────────────
+var S = {
+  rod: 'r1',
+  contestants: [],
+  entries: {},   // {rodeoId: {eventId: [cid,...]}}
+  draws: {},     // {rodeoId: {eventId: [cid,...]}}
+  results: {},   // {rodeoId: {eventId: {cid: {time,pen,...}}}}
+  settings: {},  // {rodeoId: {open:bool}}
+  // UI state
+  aG:'Girls', aA:'0-5',
+  eG:'Girls', eA:'0-5',
+  dG:'Girls', dA:'0-5',
+  sG:'Girls', sA:'0-5', sEv:null,
+  rV:'event', rR:'r1', rG:'Girls', rA:'0-5'
+};
+
+async function loadAll() {
+  var [contestants, entries, draws, results, settings] = await Promise.all([
+    api('GET','/contestants'),
+    api('GET','/entries'),
+    api('GET','/draws'),
+    api('GET','/results'),
+    api('GET','/settings')
+  ]);
+  S.contestants = contestants || [];
+  S.entries     = entries    || {};
+  S.draws       = draws      || {};
+  S.results     = results    || {};
+  S.settings    = settings   || {};
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function shuf(a) {
+  var b = a.slice();
+  for (var i = b.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = b[i]; b[i] = b[j]; b[j] = t;
+  }
+  return b;
+}
+function gC(id) { return S.contestants.find(function(c){return c.id===id;}) || {name:'?'}; }
+function gE(rid,eid){ return (S.entries[rid]&&S.entries[rid][eid])||[]; }
+function gD(rid,eid){ return (S.draws[rid]&&S.draws[rid][eid])||[]; }
+function gR(rid,eid,cid){ return (S.results[rid]&&S.results[rid][eid]&&S.results[rid][eid][cid])||{}; }
+
+var TT;
+function toast(msg,type){
+  var el=document.getElementById('toast');
+  el.textContent=msg;
+  el.style.background=(type==='err')?'#6b1a1a':'#1a4a1a';
+  el.style.display='block';
+  clearTimeout(TT);
+  TT=setTimeout(function(){el.style.display='none';},2800);
+}
+
+// ─── Nav ──────────────────────────────────────────────────────────────────────
+var curTab = 'admin';
+function go(t) {
+  curTab = t;
+  document.querySelectorAll('.nb').forEach(function(b){b.classList.remove('on');});
+  document.getElementById('t-'+t).classList.add('on');
+  render();
+}
+function sf(k, v) { S[k]=v; render(); }
+
+// ─── Header rodeo picker ──────────────────────────────────────────────────────
+function renderHdr() {
+  var h = '';
+  RODEOS.forEach(function(r){
+    var open = S.settings[r.id] && S.settings[r.id].open;
+    h += '<button class="rp'+(S.rod===r.id?' on':'')+'" onclick="setRod(\''+r.id+'\')">';
+    h += '<span>'+r.label+(open?' <span style="color:#5cd08a;font-size:.55rem">OPEN</span>':'')+'</span>';
+    h += '<span>'+r.date+'</span></button>';
+  });
+  document.getElementById('rps').innerHTML = h;
+}
+function setRod(id){ S.rod=id; render(); }
+
+// ─── Filter bar ───────────────────────────────────────────────────────────────
+function fbar(gk,ak){
+  var g=S[gk],ag=S[ak];
+  var h='<div class="flt">';
+  ['Girls','Boys'].forEach(function(x){
+    h+='<button class="fb'+(g===x?' on':'')+'" onclick="sf(\''+gk+'\',\''+x+'\')">'+x+'</button>';
+  });
+  h+='<span style="width:12px;display:inline-block"></span>';
+  AGS.forEach(function(x){
+    h+='<button class="fb'+(ag===x?' on':'')+'" onclick="sf(\''+ak+'\',\''+x+'\')">'+x+'</button>';
+  });
+  h+='</div>';
+  return h;
+}
+
+// ─── Admin tab ────────────────────────────────────────────────────────────────
+function renderAdmin(){
+  var rid=S.rod, g=S.aG, ag=S.aA;
+  var rod=RODEOS.find(function(r){return r.id===rid;});
+  var evs=EVENTS.filter(function(e){return e.gender===g&&e.ag===ag;});
+  var cons=S.contestants.filter(function(c){return c.gender===g&&c.ageGroup===ag;});
+  var aa=allAA(S.entries,S.results);
+
+  var h='<h2 class="st">Admin &mdash; Contestants &amp; Entries</h2>';
+  h+='<div class="card"><div class="gh" style="margin-bottom:10px">Add New Contestant</div>';
+  h+='<div class="fr">';
+  h+='<input type="text" id="nN" placeholder="Full Name" style="flex:1;min-width:180px">';
+  h+='<select id="nG"><option>Girls</option><option>Boys</option></select>';
+  h+='<select id="nA">'+AGS.map(function(a){return'<option>'+a+'</option>';}).join('')+'</select>';
+  h+='<button class="btn bg" onclick="addC()">Add Contestant</button>';
+  h+='</div></div>';
+
+  h+='<div class="card" style="margin-bottom:6px"><div class="gh" style="margin-bottom:6px">Event Entries &mdash; '+rod.label+' ('+rod.date+')</div>';
+  h+='<p style="color:var(--mut);font-size:.8rem">Select gender and age group, check events for each contestant.</p></div>';
+  h+=fbar('aG','aA');
+
+  if (!cons.length) return h+'<p class="empty">No '+g+' contestants in age group '+ag+'. Add one above.</p>';
+
+  cons.forEach(function(c){
+    h+='<div class="card">';
+    h+='<div class="fr" style="margin-bottom:10px">';
+    h+='<span style="font-weight:700;font-size:1rem;flex:1">'+c.name+'</span>';
+    h+='<span class="gd" style="font-size:.8rem">'+(aa[c.id]||0)+' pts</span> ';
+    h+='<button class="btn bo bs" onclick="entAll(\''+rid+'\',\''+c.id+'\',\''+g+'\',\''+ag+'\')">Enter All</button> ';
+    h+='<button class="btn bs" style="background:rgba(100,100,100,.15);border:1px solid #333;color:#999" onclick="clrAll(\''+rid+'\',\''+c.id+'\',\''+g+'\',\''+ag+'\')">Clear All</button> ';
+    h+='<button class="btn bd" onclick="delC(\''+c.id+'\')">Remove</button>';
+    h+='</div><div class="cg">';
+
+    evs.forEach(function(ev){
+      var entered = gE(rid,ev.id).indexOf(c.id)>=0;
+      var blocked = false;
+      if (ev.label.indexOf('Team Roping')>=0) {
+        var isH = ev.label.indexOf('Header')>=0;
+        var pL = isH?'Team Roping (Heeler)':'Team Roping (Header)';
+        EVENTS.forEach(function(pe){
+          if(pe.gender===ev.gender&&pe.ag===ev.ag&&pe.label===pL){
+            if(gE(rid,pe.id).indexOf(c.id)>=0) blocked=true;
+          }
+        });
+      }
+      var cls='cl'+(entered?' on':'')+(blocked?' blk':'');
+      h+='<label class="'+cls+'"'+(blocked?' title="Already entered as opposite role"':'')+'>';
+      h+='<input type="checkbox"'+(entered?' checked':'')+(blocked?' disabled':'')+' onchange="togE(\''+rid+'\',\''+ev.id+'\',\''+c.id+'\')">';
+      h+='<span style="font-size:.83rem">'+ev.label+(ev.ll?' <span style="color:var(--mut);font-size:.7rem">(LL)</span>':'')+'</span>';
+      h+='</label>';
+    });
+    h+='</div></div>';
+  });
+  return h;
+}
+
+async function addC() {
+  var n=document.getElementById('nN').value.trim();
+  if(!n){toast('Enter a name','err');return;}
+  var g=document.getElementById('nG').value;
+  var ag=document.getElementById('nA').value;
+  S.aG=g; S.aA=ag;
+  try {
+    await api('POST','/contestants',{name:n,gender:g,ageGroup:ag});
+    document.getElementById('nN').value='';
+    toast(n+' added!');
+    await loadAll(); render();
+  } catch(e){ toast(e.message,'err'); }
+}
+
+async function delC(id) {
+  if(!confirm('Remove this contestant and all their entries?')) return;
+  try {
+    await api('DELETE','/contestants?id='+id);
+    toast('Contestant removed.');
+    await loadAll(); render();
+  } catch(e){ toast(e.message,'err'); }
+}
+
+async function togE(rid,eid,cid) {
+  var entered = gE(rid,eid).indexOf(cid)>=0;
+  if (!entered) {
+    var ev=EVENTS.find(function(e){return e.id===eid;});
+    if (ev&&ev.label.indexOf('Team Roping')>=0) {
+      var isH=ev.label.indexOf('Header')>=0;
+      var pL=isH?'Team Roping (Heeler)':'Team Roping (Header)';
+      var pe=EVENTS.find(function(e){return e.gender===ev.gender&&e.ag===ev.ag&&e.label===pL;});
+      if(pe&&gE(rid,pe.id).indexOf(cid)>=0){
+        toast(gC(cid).name+' already entered as '+(isH?'Heeler':'Header'),'err');
+        await loadAll(); render(); return;
+      }
+    }
+  }
+  try {
+    await api('POST','/entries',{action:entered?'remove':'add',rodeoId:rid,eventId:eid,contestantId:cid});
+    await loadAll(); render();
+  } catch(e){ toast(e.message,'err'); }
+}
+
+async function entAll(rid,cid,g,ag) {
+  var eids=EVENTS.filter(function(e){return e.gender===g&&e.ag===ag;}).map(function(e){return e.id;});
+  try {
+    await api('POST','/entries',{action:'entryall',rodeoId:rid,contestantId:cid,eventIds:eids});
+    await loadAll(); render();
+  } catch(e){ toast(e.message,'err'); }
+}
+
+async function clrAll(rid,cid,g,ag) {
+  var eids=EVENTS.filter(function(e){return e.gender===g&&e.ag===ag;}).map(function(e){return e.id;});
+  try {
+    await api('POST','/entries',{action:'clearall',rodeoId:rid,contestantId:cid,eventIds:eids});
+    await loadAll(); render();
+  } catch(e){ toast(e.message,'err'); }
+}
+
+// ─── Entries tab ──────────────────────────────────────────────────────────────
+function renderEntries(){
+  var rid=S.rod, g=S.eG, ag=S.eA;
+  var rod=RODEOS.find(function(r){return r.id===rid;});
+  var h='<h2 class="st">Entries &mdash; '+rod.label+' ('+rod.date+')</h2>';
+  h+='<div class="ibox">To add or change entries go to the <strong>Admin</strong> tab.</div>';
+  h+=fbar('eG','eA');
+  var evs=EVENTS.filter(function(e){return e.gender===g&&e.ag===ag;});
+  evs.forEach(function(ev){
+    var entered=gE(rid,ev.id);
+    h+='<div class="card"><div class="fr" style="margin-bottom:8px">';
+    h+='<span class="eb">'+ev.label+'</span>';
+    if(ev.ll)h+='<span class="ll">(LL eligible)</span>';
+    h+='<span style="color:var(--dim);font-size:.8rem">'+entered.length+' entered</span></div>';
+    if(!entered.length){h+='<div class="empty" style="padding:6px 0">No entries</div>';}
+    else{
+      h+='<div style="display:flex;flex-wrap:wrap;gap:6px">';
+      entered.forEach(function(cid){
+        h+='<span style="background:rgba(200,146,10,.1);border:1px solid rgba(200,146,10,.25);border-radius:5px;padding:3px 10px;font-size:.83rem">'+gC(cid).name+'</span>';
+      });
+      h+='</div>';
+    }
+    h+='</div>';
+  });
+  return h;
+}
+
+// ─── Draw tab ─────────────────────────────────────────────────────────────────
+function renderDraw(){
+  var rid=S.rod, g=S.dG, ag=S.dA;
+  var rod=RODEOS.find(function(r){return r.id===rid;});
+  var h='<h2 class="st np">Draw &mdash; '+rod.label+' ('+rod.date+')</h2>';
+  h+='<div class="ph"><div class="pc">Long Valley Lions Rodeo Club</div>';
+  h+='<div class="pi">'+rod.label+' &mdash; '+rod.date+'</div>';
+  h+='<div class="pi">'+g+' &nbsp;&bull;&nbsp; Age Group: '+ag+'</div></div>';
+  h+='<div class="fr np" style="margin-bottom:12px">';
+  h+='<button class="btn bg" onclick="drawAll()">Draw All Events</button> ';
+  h+='<button class="btn bo" onclick="window.print()">Print Draw Sheet</button>';
+  h+='</div>';
+  h+=fbar('dG','dA');
+  var evs=EVENTS.filter(function(e){return e.gender===g&&e.ag===ag;});
+  evs.forEach(function(ev){
+    var ents=gE(rid,ev.id), draw=gD(rid,ev.id);
+    h+='<div class="card"'+(ents.length?'':' style="opacity:.4"')+'>';
+    h+='<div class="fr" style="margin-bottom:8px">';
+    h+='<span class="eb">'+ev.label+'</span>';
+    h+='<span style="color:var(--dim);font-size:.8rem">'+ents.length+' entered</span>';
+    if(ents.length){
+      h+=' <button class="btn bo bs np" onclick="runDraw(\''+rid+'\',\''+ev.id+'\')">Draw</button>';
+      if(draw.length)h+=' <button class="btn bs np" style="background:rgba(100,100,100,.15);border:1px solid #333;color:#999" onclick="runDraw(\''+rid+'\',\''+ev.id+'\')">Re-Draw</button>';
+    }
+    h+='</div>';
+    if(draw.length){
+      draw.forEach(function(cid,i){
+        h+='<div class="dr"><span class="dn">'+(i+1)+'</span><span>'+gC(cid).name+'</span></div>';
+      });
+    } else if(ents.length){
+      h+='<div class="empty" style="padding:6px 0">Click Draw to randomize</div>';
+    }
+    h+='</div>';
+  });
+  return h;
+}
+
+async function runDraw(rid,eid) {
+  var e=gE(rid,eid);
+  if(!e.length){toast('No entries for this event','err');return;}
+  var shuffled=shuf(e);
+  try {
+    await api('POST','/draws',{rodeoId:rid,eventId:eid,contestantIds:shuffled});
+    toast('Draw complete!');
+    await loadAll(); render();
+  } catch(ex){ toast(ex.message,'err'); }
+}
+
+async function drawAll() {
+  var rid=S.rod, n=0;
+  var calls=[];
+  EVENTS.forEach(function(ev){
+    var e=gE(rid,ev.id);
+    if(e.length){ calls.push(api('POST','/draws',{rodeoId:rid,eventId:ev.id,contestantIds:shuf(e)})); n++; }
+  });
+  try {
+    await Promise.all(calls);
+    toast('Drew '+n+' events!');
+    await loadAll(); render();
+  } catch(ex){ toast(ex.message,'err'); }
+}
+
+// ─── Secretary tab ────────────────────────────────────────────────────────────
+function renderSecretary(){
+  var rid=S.rod, g=S.sG, ag=S.sA;
+  var rod=RODEOS.find(function(r){return r.id===rid;});
+  var active=EVENTS.filter(function(ev){return ev.gender===g&&ev.ag===ag&&gE(rid,ev.id).length;});
+  var found=active.find(function(e){return e.id===S.sEv;});
+  if(!found) S.sEv=active.length?active[0].id:null;
+  var ev=EVENTS.find(function(e){return e.id===S.sEv;});
+
+  var h='<h2 class="st np">Secretary &mdash; '+rod.label+' ('+rod.date+')</h2>';
+  h+='<div class="np">'+fbar('sG','sA')+'</div>';
+  if(!active.length){
+    return h+'<div class="ibox">No entries for '+g+' '+ag+' at '+rod.label+'. Add entries in Admin first.</div>';
+  }
+  h+='<div class="flt np">';
+  active.forEach(function(ae){
+    h+='<button class="fb'+(ae.id===S.sEv?' on':'')+'" onclick="setSev(\''+ae.id+'\')">'+ae.label+'</button>';
+  });
+  h+='</div>';
+  if(!ev) return h;
+
+  var draw=gD(rid,ev.id);
+  var ents=draw.length?draw:gE(rid,ev.id);
+
+  h+='<div class="ph"><div class="pc">Long Valley Lions Rodeo Club</div>';
+  h+='<div class="pi">'+rod.label+' &mdash; '+rod.date+' | '+g+' '+ag+' | '+ev.label+'</div></div>';
+  h+='<div class="fr np" style="margin-bottom:12px">';
+  h+='<button class="btn bg" onclick="reloadSec()">Refresh</button> ';
+  h+='<button class="btn bo" onclick="window.print()">Print This Sheet</button>';
+  if(!draw.length)h+=' <span style="color:#c87a0a;font-size:.8rem;font-style:italic">No draw — showing entry order</span>';
+  h+='</div>';
+
+  h+='<div class="card"><div class="sh">';
+  h+='<span class="sn">#</span><span class="nm">Contestant</span>';
+  if(ev.type==='loops')h+='<span class="sc">Loop 1</span><span class="sc">Loop 2</span><span class="sc">Loop 3</span><span class="sc">Catches</span><span class="sc">Total</span>';
+  if(ev.type==='time') h+='<span class="sc">Time</span><span class="sc">Penalty</span><span class="sc" style="color:var(--gold)">Total</span>';
+  if(ev.type==='score')h+='<span class="sc">Score (0-100)</span>';
+  if(ev.ll)h+='<span class="sk">LL</span>';
+  h+='<span class="sk">NT/NS</span></div>';
+
+  ents.forEach(function(cid,i){
+    var r=gR(rid,ev.id,cid), c=gC(cid);
+    var tV=parseFloat(r.time)||0, pV=parseFloat(r.pen)||0;
+    var tot=(tV>0||pV>0)?(tV+pV).toFixed(3):'';
+    var bg=i%2===0?'rgba(255,255,255,0.025)':'transparent';
+    h+='<div class="sr" style="background:'+bg+'">';
+    h+='<span class="sn">'+(i+1)+'</span>';
+    h+='<span class="nm">'+c.name+'</span>';
+    if(ev.type==='loops'){
+      h+='<input class="si" type="text" placeholder="NT" value="'+(r.loop1||'')+'" oninput="su(\''+rid+'\',\''+ev.id+'\',\''+cid+'\',\'loop1\',this.value)">';
+      h+='<input class="si" type="text" placeholder="NT" value="'+(r.loop2||'')+'" oninput="su(\''+rid+'\',\''+ev.id+'\',\''+cid+'\',\'loop2\',this.value)">';
+      h+='<input class="si" type="text" placeholder="NT" value="'+(r.loop3||'')+'" oninput="su(\''+rid+'\',\''+ev.id+'\',\''+cid+'\',\'loop3\',this.value)">';
+      h+='<span id="lc'+ev.id+cid+'" class="sc gd">'+(r.loopCount||0)+'</span>';
+      h+='<span id="lt'+ev.id+cid+'" class="sc" style="font-family:monospace">'+(r.loopTotal||'&mdash;')+'</span>';
+    }
+    if(ev.type==='time'){
+      h+='<input class="si" type="text" placeholder="0.000" value="'+(r.time||'')+'" oninput="su(\''+rid+'\',\''+ev.id+'\',\''+cid+'\',\'time\',this.value)">';
+      h+='<input class="si" type="text" placeholder="0" value="'+(r.pen||'')+'" oninput="su(\''+rid+'\',\''+ev.id+'\',\''+cid+'\',\'pen\',this.value)">';
+      h+='<span id="tt'+ev.id+cid+'" class="sc gd" style="font-family:monospace">'+(r.noTime?'NT':(tot||'&mdash;'))+'</span>';
+    }
+    if(ev.type==='score'){
+      h+='<input class="si" type="text" placeholder="0" value="'+(r.score||'')+'" oninput="su(\''+rid+'\',\''+ev.id+'\',\''+cid+'\',\'score\',this.value)">';
+    }
+    if(ev.ll){
+      h+='<span class="sk"><input type="checkbox"'+(r.ll?' checked':'')+' onchange="sc2(\''+rid+'\',\''+ev.id+'\',\''+cid+'\',\'ll\',this.checked)"></span>';
+    }
+    h+='<span class="sk"><input type="checkbox"'+(r.noTime?' checked':'')+' onchange="sc2(\''+rid+'\',\''+ev.id+'\',\''+cid+'\',\'noTime\',this.checked)"></span>';
+    h+='</div>';
+  });
+  h+='</div>';
+  return h;
+}
+
+function setSev(id){ S.sEv=id; render(); }
+
+async function reloadSec() {
+  await loadAll(); render();
+}
+
+// Save field to local state + DOM immediately, then sync to API (debounced)
+var saveTimers = {};
+function su(rid,eid,cid,field,value){
+  if(!S.results[rid]) S.results[rid]={};
+  if(!S.results[rid][eid]) S.results[rid][eid]={};
+  if(!S.results[rid][eid][cid]) S.results[rid][eid][cid]={};
+  var r=S.results[rid][eid][cid];
+  r[field]=value;
+
+  // Loop count/total
+  if(field==='loop1'||field==='loop2'||field==='loop3'){
+    var lc=0,tot=0;
+    ['loop1','loop2','loop3'].forEach(function(lf){
+      var raw=(r[lf]||'').toString().trim(), v2=parseFloat(raw);
+      if(raw!==''&&!isNaN(v2)){lc++;tot+=v2;}
+    });
+    r.loopCount=lc; r.loopTotal=lc>0?tot.toFixed(3):'';
+    var a=document.getElementById('lc'+eid+cid);
+    var b=document.getElementById('lt'+eid+cid);
+    if(a)a.textContent=lc;
+    if(b)b.textContent=r.loopTotal||'-';
+    // Sync derived fields too
+    var key=rid+eid+cid;
+    clearTimeout(saveTimers[key]);
+    saveTimers[key]=setTimeout(function(){
+      api('PUT','/results',{rodeoId:rid,eventId:eid,contestantId:cid,field:field,value:value});
+      api('PUT','/results',{rodeoId:rid,eventId:eid,contestantId:cid,field:'loopCount',value:r.loopCount});
+      api('PUT','/results',{rodeoId:rid,eventId:eid,contestantId:cid,field:'loopTotal',value:r.loopTotal});
+    },600);
+    return;
+  }
+  // Time total display
+  if(field==='time'||field==='pen'){
+    var tV=parseFloat(r.time)||0, pV=parseFloat(r.pen)||0;
+    var tot2=(tV>0||pV>0)?(tV+pV).toFixed(3):'';
+    var sp=document.getElementById('tt'+eid+cid);
+    if(sp)sp.textContent=r.noTime?'NT':(tot2||'-');
+  }
+  var key2=rid+eid+cid+field;
+  clearTimeout(saveTimers[key2]);
+  saveTimers[key2]=setTimeout(function(){
+    api('PUT','/results',{rodeoId:rid,eventId:eid,contestantId:cid,field:field,value:value});
+  },600);
+}
+
+async function sc2(rid,eid,cid,field,value){
+  if(!S.results[rid]) S.results[rid]={};
+  if(!S.results[rid][eid]) S.results[rid][eid]={};
+  if(!S.results[rid][eid][cid]) S.results[rid][eid][cid]={};
+  S.results[rid][eid][cid][field]=value;
+  try{
+    await api('PUT','/results',{rodeoId:rid,eventId:eid,contestantId:cid,field:field,value:value});
+    render();
+  }catch(e){toast(e.message,'err');}
+}
+
+// ─── Results tab ──────────────────────────────────────────────────────────────
+function renderResults(){
+  var view=S.rV, rid=S.rR, g=S.rG, ag=S.rA;
+  var rod=RODEOS.find(function(r){return r.id===rid;});
+  var aa=allAA(S.entries,S.results);
+  var h='<h2 class="st">Results &amp; Standings</h2>';
+  h+='<div class="flt">';
+  h+='<button class="fb'+(view==='event'?' on':'')+'" onclick="sf(\'rV\',\'event\')">Event Results</button>';
+  h+='<button class="fb'+(view==='allaround'?' on':'')+'" onclick="sf(\'rV\',\'allaround\')">All-Around Standings</button>';
+  h+='</div>';
+
+  if(view==='event'){
+    h+='<div class="flt">';
+    RODEOS.forEach(function(r){
+      h+='<button class="fb'+(rid===r.id?' on':'')+'" onclick="sf(\'rR\',\''+r.id+'\')">'+r.label+' &mdash; '+r.date+'</button>';
+    });
+    h+='</div>';
+    h+=fbar('rG','rA');
+    var evs=EVENTS.filter(function(e){return e.gender===g&&e.ag===ag;});
+    var rEntries=S.entries[rid]||{};
+    var rResults=S.results[rid]||{};
+    evs.forEach(function(ev){
+      var ranked=rankEv(rEntries,rResults,ev.id);
+      if(!ranked.length)return;
+      h+='<div class="card"><div class="eb" style="margin-bottom:10px">'+ev.label+'</div>';
+      h+='<table><thead><tr><th>Place</th><th>Contestant</th>';
+      if(ev.type==='loops')h+='<th>Catches</th><th>Total Time</th>';
+      if(ev.type==='time') h+='<th>Time</th><th>Pen</th><th>Total</th>';
+      if(ev.type==='score')h+='<th>Score</th>';
+      h+='<th>Points</th></tr></thead><tbody>';
+      ranked.forEach(function(r){
+        var pl=r.place?(r.place+(r.ll?' LL':'')):(r.ll?'LL':'NT');
+        var sc='';
+        if(ev.type==='loops')sc='<td>'+r.loopCount+'</td><td style="font-family:monospace">'+(r.loopTotal||'-')+'</td>';
+        if(ev.type==='time'){
+          var tv=parseFloat(r.time)||0,pv=parseFloat(r.pen)||0;
+          var tot=r.noTime?'NT':(tv>0?(tv+pv).toFixed(3):'-');
+          sc='<td style="font-family:monospace">'+(r.noTime?'NT':(r.time||'-'))+'</td><td>'+(r.pen||'-')+'</td><td class="gd" style="font-family:monospace">'+tot+'</td>';
+        }
+        if(ev.type==='score')sc='<td>'+(r.noTime?'NS':(r.score||'-'))+'</td>';
+        h+='<tr><td class="'+(r.place===1?'gd':'')+'">'+pl+'</td>';
+        h+='<td style="font-weight:600">'+r.name+(r.ll?' <span style="color:#c8920a">LL</span>':'')+'</td>';
+        h+=sc+'<td class="gd">'+(r.points>0?r.points:'-')+'</td></tr>';
+      });
+      h+='</tbody></table></div>';
+    });
+  } else {
+    h+='<div class="ibox"><strong>All-Around Points</strong> &mdash; Cumulative across all 4 rodeos.</div>';
+    ['Girls','Boys'].forEach(function(gen){
+      h+='<h3 class="gt">'+gen+'</h3>';
+      AGS.forEach(function(ageG){
+        var list=S.contestants.filter(function(c){return c.gender===gen&&c.ageGroup===ageG&&(aa[c.id]||0)>0;});
+        list=list.map(function(c){return{id:c.id,name:c.name,total:aa[c.id]||0};});
+        if(!list.length)return;
+        list.sort(function(a,b){return b.total-a.total;});
+        h+='<div class="card"><div class="gh">'+gen+' &mdash; '+ageG+'</div>';
+        h+='<table><thead><tr><th>Rank</th><th>Contestant</th>';
+        RODEOS.forEach(function(r){h+='<th>'+r.label+'</th>';});
+        h+='<th>Total</th></tr></thead><tbody>';
+        list.forEach(function(c,li){
+          var rts=RODEOS.map(function(rod){
+            var t=0;
+            var rEntries=S.entries[rod.id]||{};
+            var rResults=S.results[rod.id]||{};
+            EVENTS.forEach(function(ev){
+              var ranked=rankEv(rEntries,rResults,ev.id);
+              ranked.forEach(function(r){if(r.cid===c.id)t+=r.points||0;});
+            });
+            return t;
+          });
+          h+='<tr><td class="'+(li===0?'gd':'')+'">'+(li+1)+'</td>';
+          h+='<td style="font-weight:600">'+c.name+'</td>';
+          rts.forEach(function(t){h+='<td style="color:var(--mut)">'+(t||'-')+'</td>';});
+          h+='<td class="gd" style="font-size:1rem">'+c.total+'</td></tr>';
+        });
+        h+='</tbody></table></div>';
+      });
+    });
+  }
+  return h;
+}
+
+// ─── Settings tab ─────────────────────────────────────────────────────────────
+function renderSettings(){
+  var h='<h2 class="st">Settings &mdash; Rodeo Entry Windows</h2>';
+  h+='<div class="ibox">Open a rodeo to allow contestants to self-enter via the public entry form at <strong>/enter</strong>. Close it when the entry deadline has passed.</div>';
+  RODEOS.forEach(function(rod){
+    var open = S.settings[rod.id] && S.settings[rod.id].open;
+    h+='<div class="card"><div class="tog">';
+    h+='<span><strong>'+rod.label+'</strong> &mdash; '+rod.date+'</span>';
+    h+='<span style="font-size:.82rem;color:'+(open?'#5cd08a':'#cc6666')+'">'+(open?'OPEN for entries':'CLOSED')+'</span>';
+    h+='<button class="tog-btn '+(open?'closed':'open')+'" onclick="toggleOpen(\''+rod.id+'\','+(open?'false':'true')+')">'+(open?'Close Entries':'Open Entries')+'</button>';
+    h+='</div></div>';
+  });
+  h+='<div class="card"><div class="gh">Public Links</div>';
+  h+='<p style="font-size:.88rem;color:var(--mut);margin-bottom:10px">Share these links with contestants and families:</p>';
+  h+='<div style="display:flex;flex-direction:column;gap:8px">';
+  h+='<div style="background:var(--bg3);border:1px solid var(--bdr2);border-radius:6px;padding:10px 14px;font-family:monospace;font-size:.85rem;display:flex;justify-content:space-between;align-items:center">';
+  h+='<span id="entryUrl">'+window.location.origin+'/enter</span>';
+  h+='<button class="btn bo bs" onclick="copyUrl(\'entry\')">Copy</button></div>';
+  h+='<div style="background:var(--bg3);border:1px solid var(--bdr2);border-radius:6px;padding:10px 14px;font-family:monospace;font-size:.85rem;display:flex;justify-content:space-between;align-items:center">';
+  h+='<span id="resultsUrl">'+window.location.origin+'/standings</span>';
+  h+='<button class="btn bo bs" onclick="copyUrl(\'results\')">Copy</button></div>';
+  h+='</div></div>';
+  return h;
+}
+
+function copyUrl(which){
+  var el=document.getElementById(which==='entry'?'entryUrl':'resultsUrl');
+  navigator.clipboard.writeText(el.textContent).then(function(){toast('Copied to clipboard!');});
+}
+
+async function toggleOpen(rodeoId,open){
+  try{
+    await api('PUT','/settings',{rodeoId:rodeoId,open:open==='true'||open===true});
+    toast(open?'Entry window opened!':'Entry window closed.');
+    await loadAll(); render();
+  }catch(e){toast(e.message,'err');}
+}
+
+// ─── Main render ──────────────────────────────────────────────────────────────
+function render(){
+  renderHdr();
+  var m=document.getElementById('main');
+  if(curTab==='admin')         m.innerHTML=renderAdmin();
+  else if(curTab==='entries')  m.innerHTML=renderEntries();
+  else if(curTab==='draw')     m.innerHTML=renderDraw();
+  else if(curTab==='secretary')m.innerHTML=renderSecretary();
+  else if(curTab==='results')  m.innerHTML=renderResults();
+  else if(curTab==='settings') m.innerHTML=renderSettings();
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+(async function(){
+  try {
+    await loadAll();
+    render();
+  } catch(e) {
+    if(e.message&&e.message.includes('401')) logout();
+    document.getElementById('main').innerHTML='<div class="empty" style="padding:60px 0;color:#cc6666">Failed to load data. Check your connection.</div>';
+  }
+})();
+</script>
+</body>
+</html>
