@@ -784,7 +784,9 @@ function renderFees(){
 }
 
 // ─── Print all draws ──────────────────────────────────────────────────────────
-function printAllDraws(){
+async function printAllDraws(){
+  toast('Loading draw data…');
+  await loadAll();
   var rid=S.rod;
   var rod=RODEOS.find(function(r){return r.id===rid;});
   var sections=[];
