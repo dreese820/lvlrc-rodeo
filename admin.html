@@ -602,6 +602,7 @@ function renderResults(){
   var rod=RODEOS.find(function(r){return r.id===rid;});
   var aa=allAA(S.entries,S.results,S.contestants);
   var h='<h2 class="st">Results &amp; Standings</h2>';
+  h+='<div class="fr np" style="margin-bottom:14px"><button class="btn bo" onclick="printAllResults()">Print All Results</button></div>';
   h+='<div class="flt">';
   h+='<button class="fb'+(view==='event'?' on':'')+'" onclick="sf(\'rV\',\'event\')">Event Results</button>';
   h+='<button class="fb'+(view==='allaround'?' on':'')+'" onclick="sf(\'rV\',\'allaround\')">All-Around Standings</button>';
@@ -834,6 +835,32 @@ async function printAllDraws(){
 
   var w=window.open('','_blank','width=820,height=640');
   w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Draw Sheets</title><style>'+css+'</style></head><body>'+body+'<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};<\/script></body></html>');
+  w.document.close();
+}
+
+// ─── Print all results ────────────────────────────────────────────────────────
+async function printAllResults(){
+  toast('Loading results…');
+  await loadAll();
+  var rid=S.rR;
+  var rod=RODEOS.find(function(r){return r.id===rid;});
+  var rEnt=S.entries[rid]||{};
+  var rRes=S.results[rid]||{};
+
+  var sections=[];
+  ['Girls','Boys'].forEach(function(gender){
+    AGS.forEach(function(ag){
+      EVENTS.filter(function(e){return e.gender===gender&&e.ag===ag;}).forEach(function(ev){
+        var ranked=rankEv(rEnt,rRes,ev.id);
+        if(!ranked.length)return;
+        sections.push({gender:gender,ag:ag,ev:ev,ranked:ranked});
+      });
+    });
+  });
+  if(!sections.length){toast('No results posted for '+rod.label+' yet.','err');return;}
+
+  var w=window.open('','_blank','width=820,height=640');
+  w.document.write(buildResultsPrintDoc(rod,sections,gC));
   w.document.close();
 }
 

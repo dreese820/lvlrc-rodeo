@@ -93,6 +93,7 @@ function renderNav() {
   var h = '';
   h += '<button class="nb'+(view==='allaround'?' on':'')+'" onclick="sf(\'view\',\'allaround\')">All-Around Standings</button>';
   h += '<button class="nb'+(view==='event'?' on':'')+'" onclick="sf(\'view\',\'event\')">Event Results</button>';
+  h += '<button class="nb" onclick="printAllResults()">Print Results</button>';
   document.getElementById('nav').innerHTML = h;
 }
 
@@ -205,6 +206,26 @@ function renderEvent() {
 
   if (!any) h += '<div class="empty">No results posted for this selection yet.</div>';
   return h;
+}
+
+function printAllResults() {
+  var rod = RODEOS.find(function(r){ return r.id === selRodeo; });
+  var rEnt = allEntries[selRodeo] || {};
+  var rRes = allResults[selRodeo] || {};
+  var sections = [];
+  ['Girls','Boys'].forEach(function(gender){
+    AGS.forEach(function(ag){
+      EVENTS.filter(function(e){ return e.gender===gender && e.ag===ag; }).forEach(function(ev){
+        var ranked = rankEv(rEnt, rRes, ev.id);
+        if (!ranked.length) return;
+        sections.push({gender:gender, ag:ag, ev:ev, ranked:ranked});
+      });
+    });
+  });
+  if (!sections.length) { alert('No results posted for '+rod.label+' yet.'); return; }
+  var w = window.open('','_blank','width=820,height=640');
+  w.document.write(buildResultsPrintDoc(rod, sections, gC));
+  w.document.close();
 }
 
 init();

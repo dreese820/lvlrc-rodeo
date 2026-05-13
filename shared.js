@@ -59,6 +59,86 @@ var EVENTS = [
   {id:'tre_b_1518',label:'Team Roping (Heeler)', gender:'Boys',ag:'15-18', type:'time', ll:false}
 ];
 
+// ─── Print results document builder ─────────────────────────────────────────
+// gCfn is the caller's gC lookup: function(cid) -> {name:...}
+function buildResultsPrintDoc(rod, sections, gCfn) {
+  function fmtResult(ev, r) {
+    if (ev.type === 'time') {
+      if (r.noTime) return 'NT';
+      var tv = parseFloat(r.time) || 0;
+      if (!tv) return '—';
+      var pv = parseFloat(r.pen) || 0;
+      return (tv + pv).toFixed(3) + (pv > 0 ? ' +' + pv : '');
+    }
+    if (ev.type === 'loops') {
+      if (r.noTime) return 'NT';
+      var lc = r.loopCount || 0;
+      if (!lc) return '—';
+      return lc + ' / ' + (r.loopTotal || '?');
+    }
+    if (ev.type === 'score') {
+      if (r.noTime) return 'NS';
+      return (r.score !== undefined && r.score !== '') ? r.score : '—';
+    }
+    return '—';
+  }
+
+  var css = [
+    '*{box-sizing:border-box;margin:0;padding:0;}',
+    'body{font-family:Arial,sans-serif;font-size:10pt;color:#000;background:#fff;}',
+    'h1{font-size:13pt;font-weight:bold;text-transform:uppercase;letter-spacing:.05em;text-align:center;}',
+    '.sub{font-size:9pt;text-align:center;margin-top:3px;margin-bottom:12px;padding-bottom:10px;border-bottom:1pt solid #000;}',
+    '.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;}',
+    '.box{border:1pt solid #bbb;border-radius:3pt;padding:7px 9px;break-inside:avoid;}',
+    '.etitle{font-weight:bold;font-size:9.5pt;}',
+    '.esub{font-size:7.5pt;color:#555;margin-bottom:4px;padding-bottom:3px;border-bottom:1pt solid #ddd;text-transform:uppercase;letter-spacing:.05em;}',
+    'table{width:100%;border-collapse:collapse;margin-top:2px;}',
+    'th{font-size:7pt;text-transform:uppercase;letter-spacing:.04em;color:#777;padding:2px 3px;border-bottom:1pt solid #ccc;text-align:left;}',
+    'th.r,td.r{text-align:right;}',
+    'td{font-size:8.5pt;padding:2px 3px;border-bottom:1pt dotted #ebebeb;}',
+    'tr:last-child td{border-bottom:none;}',
+    '.p1 td{font-weight:bold;}',
+    '.p1 td:first-child::before{content:"★ ";}',
+    '.nt td{color:#aaa;}',
+    '.mono{font-family:monospace;font-size:8pt;}',
+    '@media print{body{padding:0;}@page{size:letter;margin:0.35in;}}'
+  ].join('');
+
+  var body = '<h1>Long Valley Lions Rodeo Club</h1>';
+  body += '<div class="sub">' + rod.label + ' &mdash; ' + rod.date + ' &nbsp;&bull;&nbsp; Event Results</div>';
+  body += '<div class="grid">';
+
+  sections.forEach(function(s) {
+    body += '<div class="box">';
+    body += '<div class="etitle">' + s.ev.label + '</div>';
+    body += '<div class="esub">' + s.gender + ' &bull; Age ' + s.ag + '</div>';
+    body += '<table><thead><tr><th>Place</th><th>Contestant</th>';
+    if (s.ev.type === 'loops') body += '<th class="r">Catches / Time</th>';
+    if (s.ev.type === 'time')  body += '<th class="r">Total</th>';
+    if (s.ev.type === 'score') body += '<th class="r">Score</th>';
+    body += '<th class="r">Pts</th></tr></thead><tbody>';
+    s.ranked.forEach(function(r) {
+      var isFirst = r.place === 1;
+      var isNT    = !r.place && !r.ll;
+      var name    = gCfn(r.cid).name;
+      var pl      = r.ll ? (r.place ? r.place + ' LL' : 'LL') : (r.place || 'NT');
+      body += '<tr class="' + (isFirst ? 'p1' : isNT ? 'nt' : '') + '">';
+      body += '<td>' + pl + '</td>';
+      body += '<td>' + name + '</td>';
+      body += '<td class="r mono">' + fmtResult(s.ev, r) + '</td>';
+      body += '<td class="r">' + (r.points > 0 ? r.points : '-') + '</td>';
+      body += '</tr>';
+    });
+    body += '</tbody></table></div>';
+  });
+
+  body += '</div>';
+  return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Results &mdash; ' + rod.label + '</title>'
+    + '<style>' + css + '</style></head><body>' + body
+    + '<scr' + 'ipt>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};</scr' + 'ipt>'
+    + '</body></html>';
+}
+
 // ─── Ranking logic (identical to original) ───────────────────────────────────
 function rankEv(entries, results, eid) {
   var ev = EVENTS.find(function(e){ return e.id === eid; });
