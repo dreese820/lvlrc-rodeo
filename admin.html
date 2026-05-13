@@ -240,7 +240,7 @@ function renderAdmin(){
   var rod=RODEOS.find(function(r){return r.id===rid;});
   var evs=EVENTS.filter(function(e){return e.gender===g&&e.ag===ag;});
   var cons=S.contestants.filter(function(c){return c.gender===g&&c.ageGroup===ag;});
-  var aa=allAA(S.entries,S.results);
+  var aa=allAA(S.entries,S.results,S.contestants);
 
   var h='<h2 class="st">Admin &mdash; Contestants &amp; Entries</h2>';
 
@@ -297,7 +297,17 @@ function renderAdmin(){
       h+='<span style="font-size:.83rem">'+ev.label+(ev.ll?' <span style="color:var(--mut);font-size:.7rem">(LL)</span>':'')+'</span>';
       h+='</label>';
     });
-    h+='</div></div>';
+    h+='</div>';
+    if(g==='Boys'&&ag==='10-14'){
+      var caEntered=gE(rid,'cro_b_1518').indexOf(c.id)>=0;
+      h+='<div style="margin-top:10px;border-top:1px solid var(--bdr);padding-top:10px">';
+      h+='<div class="gh" style="margin-bottom:6px">Special Cross-Age Entry</div>';
+      h+='<label class="cl'+(caEntered?' on':'')+'">';
+      h+='<input type="checkbox"'+(caEntered?' checked':'')+' onchange="togE(\''+rid+'\',\'cro_b_1518\',\''+c.id+'\')">';
+      h+='<span style="font-size:.83rem">15-18 Calf Roping <span style="color:var(--mut);font-size:.7rem">(No All-Around Points)</span></span>';
+      h+='</label></div>';
+    }
+    h+='</div>';
   });
   return h;
 }
@@ -590,7 +600,7 @@ async function sc2(rid,eid,cid,field,value){
 function renderResults(){
   var view=S.rV, rid=S.rR, g=S.rG, ag=S.rA;
   var rod=RODEOS.find(function(r){return r.id===rid;});
-  var aa=allAA(S.entries,S.results);
+  var aa=allAA(S.entries,S.results,S.contestants);
   var h='<h2 class="st">Results &amp; Standings</h2>';
   h+='<div class="flt">';
   h+='<button class="fb'+(view==='event'?' on':'')+'" onclick="sf(\'rV\',\'event\')">Event Results</button>';
@@ -650,9 +660,12 @@ function renderResults(){
             var t=0;
             var rEntries=S.entries[rod.id]||{};
             var rResults=S.results[rod.id]||{};
+            var con=S.contestants.find(function(x){return x.id===c.id;});
             EVENTS.forEach(function(ev){
               var ranked=rankEv(rEntries,rResults,ev.id);
-              ranked.forEach(function(r){if(r.cid===c.id)t+=r.points||0;});
+              ranked.forEach(function(r){
+                if(r.cid===c.id&&(!con||con.ageGroup===ev.ag))t+=r.points||0;
+              });
             });
             return t;
           });

@@ -168,6 +168,15 @@ function renderEvents(g, ag) {
     h += '<span>'+ev.label+'</span></label>';
   });
   h += '</div>';
+  if (g === 'Boys' && ag === '10-14') {
+    var caChecked = !!selectedEvents['cro_b_1518'];
+    h += '<div class="gh" style="margin-top:16px;margin-bottom:8px">Special Cross-Age Entry</div>';
+    h += '<div class="msg info" style="margin-bottom:10px;font-size:.82rem">Contestants entered here compete in the 15-18 Calf Roping and can place and earn points in that event. These points do <strong>not</strong> count toward the All-Around standings.</div>';
+    h += '<label class="cl'+(caChecked?' on':'')+'" id="cl_cro_b_1518">';
+    h += '<input type="checkbox"'+(caChecked?' checked':'')+' id="chk_cro_b_1518" onchange="toggleEvent(\'cro_b_1518\')">';
+    h += '<span>15-18 Calf Roping <span style="color:var(--mut);font-size:.75rem">(No All-Around Points)</span></span>';
+    h += '</label>';
+  }
   sec.innerHTML = h;
 }
 
@@ -235,6 +244,7 @@ async function submitEntry() {
 
     var rod = RODEOS.find(function(r){return r.id===selectedRodeo;});
     var evArr = eventIds.map(function(eid){
+      if (eid === 'cro_b_1518' && ag === '10-14') return 'Calf Roping 15-18 (No All-Around Points)';
       var e = EVENTS.find(function(x){return x.id===eid;});
       return e ? e.label : eid;
     });

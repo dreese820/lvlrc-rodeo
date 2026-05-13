@@ -97,7 +97,7 @@ function renderNav() {
 }
 
 function renderAllAround() {
-  var aa = allAA(allEntries, allResults);
+  var aa = allAA(allEntries, allResults, contestants);
   var h = '<h2 class="st">All-Around Standings</h2>';
   h += '<div class="ibox">Cumulative points across all 4 rodeos. Updated after each rodeo.</div>';
 
@@ -121,9 +121,10 @@ function renderAllAround() {
           var t = 0;
           var rEnt = allEntries[rod.id]||{};
           var rRes = allResults[rod.id]||{};
+          var con = contestants.find(function(x){return x.id===c.id;});
           EVENTS.forEach(function(ev){
             rankEv(rEnt,rRes,ev.id).forEach(function(r){
-              if(r.cid===c.id) t+=r.points||0;
+              if(r.cid===c.id&&(!con||con.ageGroup===ev.ag)) t+=r.points||0;
             });
           });
           return t;

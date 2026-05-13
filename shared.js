@@ -131,20 +131,28 @@ function rankEv(entries, results, eid) {
   return out;
 }
 
-// allAA returns {contestantId: totalPoints} across all 4 rodeos
-function allAA(allEntries, allResults) {
+// allAA returns {contestantId: totalPoints} across all 4 rodeos.
+// Pass contestants array to exclude cross-age entries from all-around totals.
+function allAA(allEntries, allResults, contestants) {
   var t = {};
+  var cMap = {};
+  (contestants || []).forEach(function(c){ cMap[c.id] = c; });
   RODEOS.forEach(function(rod){
     EVENTS.forEach(function(ev){
       var ents = (allEntries[rod.id]&&allEntries[rod.id][ev.id])||[];
       if (!ents.length) return;
-      var res = (allResults[rod.id]&&allResults[rod.id][ev.id])||{};
       var ranked = rankEv(
         (allEntries[rod.id]||{}),
         (allResults[rod.id]||{}),
         ev.id
       );
-      ranked.forEach(function(r){ if(r.points>0) t[r.cid]=(t[r.cid]||0)+r.points; });
+      ranked.forEach(function(r){
+        if (r.points > 0) {
+          var c = cMap[r.cid];
+          if (c && c.ageGroup !== ev.ag) return; // cross-age: no all-around credit
+          t[r.cid] = (t[r.cid]||0) + r.points;
+        }
+      });
     });
   });
   return t;
