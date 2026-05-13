@@ -840,27 +840,10 @@ async function printAllDraws(){
 
 // ─── Print all results ────────────────────────────────────────────────────────
 async function printAllResults(){
-  toast('Loading results…');
+  toast('Loading season data…');
   await loadAll();
-  var rid=S.rR;
-  var rod=RODEOS.find(function(r){return r.id===rid;});
-  var rEnt=S.entries[rid]||{};
-  var rRes=S.results[rid]||{};
-
-  var sections=[];
-  ['Girls','Boys'].forEach(function(gender){
-    AGS.forEach(function(ag){
-      EVENTS.filter(function(e){return e.gender===gender&&e.ag===ag;}).forEach(function(ev){
-        var ranked=rankEv(rEnt,rRes,ev.id);
-        if(!ranked.length)return;
-        sections.push({gender:gender,ag:ag,ev:ev,ranked:ranked});
-      });
-    });
-  });
-  if(!sections.length){toast('No results posted for '+rod.label+' yet.','err');return;}
-
-  var w=window.open('','_blank','width=820,height=640');
-  w.document.write(buildResultsPrintDoc(rod,sections,gC));
+  var w=window.open('','_blank','width=900,height=700');
+  w.document.write(buildSeasonPointsDoc(S.entries,S.results,S.contestants));
   w.document.close();
 }
 

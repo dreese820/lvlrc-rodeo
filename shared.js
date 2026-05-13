@@ -139,6 +139,113 @@ function buildResultsPrintDoc(rod, sections, gCfn) {
     + '</body></html>';
 }
 
+// ─── Season points sheet builder ────────────────────────────────────────────
+// Produces a full HTML document: one section per event, Girls/Boys side by side,
+// each age group listed, columns: Name | R1 | R2 | R3 | R4 | Total | Rank (top 10).
+function buildSeasonPointsDoc(allEntries, allResults, contestants) {
+  var cMap = {};
+  (contestants || []).forEach(function(c){ cMap[c.id] = c; });
+
+  var today = new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
+
+  // Unique event labels in EVENTS definition order
+  var evLabels = [], seenL = {};
+  EVENTS.forEach(function(ev){
+    if (!seenL[ev.label]) { seenL[ev.label] = true; evLabels.push(ev.label); }
+  });
+
+  var css = [
+    '*{box-sizing:border-box;margin:0;padding:0;}',
+    'body{font-family:Arial,sans-serif;font-size:9pt;color:#000;background:#fff;}',
+    'h1{font-size:13pt;font-weight:bold;text-align:center;text-transform:uppercase;letter-spacing:.06em;}',
+    '.sub{font-size:8.5pt;text-align:center;margin:3px 0 12px;padding-bottom:8px;border-bottom:2pt solid #000;}',
+    '.ev-section{margin-bottom:14px;}',
+    '.ev-title{font-size:10.5pt;font-weight:bold;text-transform:uppercase;letter-spacing:.06em;',
+    'border-bottom:1.5pt solid #000;padding-bottom:3px;margin-bottom:6px;}',
+    '.ag-block{margin-bottom:8px;break-inside:avoid;}',
+    '.ag-label{font-size:7.5pt;font-weight:bold;text-transform:uppercase;letter-spacing:.05em;color:#444;margin-bottom:3px;}',
+    '.sides{display:grid;grid-template-columns:1fr 1fr;gap:0 12px;}',
+    '.sides.solo{grid-template-columns:1fr;}',
+    '.side-hdr{font-size:7pt;font-weight:bold;text-transform:uppercase;letter-spacing:.06em;',
+    'background:#e8e8e8;padding:2px 4px;margin-bottom:1px;}',
+    '.no-ent{font-size:7pt;color:#999;font-style:italic;padding:3px 4px;}',
+    'table{width:100%;border-collapse:collapse;}',
+    'th{font-size:6pt;text-transform:uppercase;letter-spacing:.04em;color:#555;',
+    'border-bottom:1pt solid #ccc;padding:2px 4px;text-align:left;white-space:nowrap;}',
+    'th.r,td.r{text-align:right;}',
+    'td{font-size:7.5pt;padding:2px 4px;border-bottom:1pt dotted #e0e0e0;}',
+    'tr:last-child td{border-bottom:none;}',
+    '.t1 td{font-weight:bold;}',
+    '.rk{color:#777;font-size:6.5pt;}',
+    '@media print{body{padding:0;}@page{size:letter;margin:0.35in;}}'
+  ].join('');
+
+  function buildTable(ev) {
+    var cidSet = {};
+    RODEOS.forEach(function(rod){
+      var ents = (allEntries[rod.id] && allEntries[rod.id][ev.id]) || [];
+      ents.forEach(function(cid){ cidSet[cid] = true; });
+    });
+    var cids = Object.keys(cidSet);
+    if (!cids.length) return '<div class="no-ent">No entries</div>';
+
+    var cache = {};
+    RODEOS.forEach(function(rod, ri){
+      var ranked = rankEv(allEntries[rod.id]||{}, allResults[rod.id]||{}, ev.id);
+      ranked.forEach(function(r){
+        if (!cache[r.cid]) cache[r.cid] = [0,0,0,0];
+        cache[r.cid][ri] = r.points || 0;
+      });
+    });
+
+    var rows = cids.map(function(cid){
+      var pts = cache[cid] || [0,0,0,0];
+      return {name:(cMap[cid]||{name:'?'}).name, pts:pts, total:pts.reduce(function(a,b){return a+b;},0)};
+    });
+    rows.sort(function(a,b){ return b.total - a.total; });
+
+    var h = '<table><thead><tr><th>Contestant</th>';
+    RODEOS.forEach(function(r){ h += '<th class="r">' + r.date + '</th>'; });
+    h += '<th class="r">Total</th><th class="r">Rank</th></tr></thead><tbody>';
+    rows.forEach(function(row, i){
+      h += '<tr' + (i === 0 ? ' class="t1"' : '') + '>';
+      h += '<td>' + row.name + '</td>';
+      row.pts.forEach(function(p){ h += '<td class="r">' + (p || '') + '</td>'; });
+      h += '<td class="r">' + (row.total || '') + '</td>';
+      h += '<td class="r rk">' + (i < 10 ? i + 1 : '') + '</td>';
+      h += '</tr>';
+    });
+    h += '</tbody></table>';
+    return h;
+  }
+
+  var body = '<h1>Long Valley Lions Rodeo Club</h1>';
+  body += '<div class="sub">Season Points Sheet &nbsp;&bull;&nbsp; ' + today + '</div>';
+
+  evLabels.forEach(function(evLabel){
+    var agBlocks = '';
+    AGS.forEach(function(ag){
+      var gEv = EVENTS.find(function(e){ return e.label===evLabel && e.gender==='Girls' && e.ag===ag; });
+      var bEv = EVENTS.find(function(e){ return e.label===evLabel && e.gender==='Boys'  && e.ag===ag; });
+      if (!gEv && !bEv) return;
+      var both = !!(gEv && bEv);
+      agBlocks += '<div class="ag-block">';
+      agBlocks += '<div class="ag-label">Age ' + ag + '</div>';
+      agBlocks += '<div class="sides' + (both ? '' : ' solo') + '">';
+      if (gEv) agBlocks += '<div><div class="side-hdr">Girls</div>' + buildTable(gEv) + '</div>';
+      if (bEv) agBlocks += '<div><div class="side-hdr">Boys</div>'  + buildTable(bEv) + '</div>';
+      agBlocks += '</div></div>';
+    });
+    if (!agBlocks) return;
+    body += '<div class="ev-section"><div class="ev-title">' + evLabel + '</div>' + agBlocks + '</div>';
+  });
+
+  return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Season Points &mdash; Long Valley Lions</title>'
+    + '<style>' + css + '</style></head><body>' + body
+    + '<scr'+'ipt>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};</scr'+'ipt>'
+    + '</body></html>';
+}
+
 // ─── Ranking logic (identical to original) ───────────────────────────────────
 function rankEv(entries, results, eid) {
   var ev = EVENTS.find(function(e){ return e.id === eid; });
