@@ -510,19 +510,19 @@ function renderSecretary(){
     h+='<span class="sn">'+(i+1)+'</span>';
     h+='<span class="nm">'+c.name+'</span>';
     if(ev.type==='loops'){
-      h+='<input class="si" type="text" placeholder="NT" value="'+(r.loop1||'')+'" oninput="su(\''+rid+'\',\''+ev.id+'\',\''+cid+'\',\'loop1\',this.value)">';
-      h+='<input class="si" type="text" placeholder="NT" value="'+(r.loop2||'')+'" oninput="su(\''+rid+'\',\''+ev.id+'\',\''+cid+'\',\'loop2\',this.value)">';
-      h+='<input class="si" type="text" placeholder="NT" value="'+(r.loop3||'')+'" oninput="su(\''+rid+'\',\''+ev.id+'\',\''+cid+'\',\'loop3\',this.value)">';
+      h+='<input class="si" type="text" value="'+(r.loop1||'')+'" oninput="su(\''+rid+'\',\''+ev.id+'\',\''+cid+'\',\'loop1\',this.value)">';
+      h+='<input class="si" type="text" value="'+(r.loop2||'')+'" oninput="su(\''+rid+'\',\''+ev.id+'\',\''+cid+'\',\'loop2\',this.value)">';
+      h+='<input class="si" type="text" value="'+(r.loop3||'')+'" oninput="su(\''+rid+'\',\''+ev.id+'\',\''+cid+'\',\'loop3\',this.value)">';
       h+='<span id="lc'+ev.id+cid+'" class="sc gd">'+(r.loopCount||0)+'</span>';
       h+='<span id="lt'+ev.id+cid+'" class="sc" style="font-family:monospace">'+(r.loopTotal||'&mdash;')+'</span>';
     }
     if(ev.type==='time'){
-      h+='<input class="si" type="text" placeholder="0.000" value="'+(r.time||'')+'" oninput="su(\''+rid+'\',\''+ev.id+'\',\''+cid+'\',\'time\',this.value)">';
-      h+='<input class="si" type="text" placeholder="0" value="'+(r.pen||'')+'" oninput="su(\''+rid+'\',\''+ev.id+'\',\''+cid+'\',\'pen\',this.value)">';
+      h+='<input class="si" type="text" value="'+(r.time||'')+'" oninput="su(\''+rid+'\',\''+ev.id+'\',\''+cid+'\',\'time\',this.value)">';
+      h+='<input class="si" type="text" value="'+(r.pen||'')+'" oninput="su(\''+rid+'\',\''+ev.id+'\',\''+cid+'\',\'pen\',this.value)">';
       h+='<span id="tt'+ev.id+cid+'" class="sc gd" style="font-family:monospace">'+(r.noTime?'NT':(tot||'&mdash;'))+'</span>';
     }
     if(ev.type==='score'){
-      h+='<input class="si" type="text" placeholder="0" value="'+(r.score||'')+'" oninput="su(\''+rid+'\',\''+ev.id+'\',\''+cid+'\',\'score\',this.value)">';
+      h+='<input class="si" type="text" value="'+(r.score||'')+'" oninput="su(\''+rid+'\',\''+ev.id+'\',\''+cid+'\',\'score\',this.value)">';
     }
     if(ev.ll){
       h+='<span class="sk"><input type="checkbox"'+(r.ll?' checked':'')+' onchange="sc2(\''+rid+'\',\''+ev.id+'\',\''+cid+'\',\'ll\',this.checked)"></span>';
