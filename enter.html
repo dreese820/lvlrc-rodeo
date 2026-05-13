@@ -247,7 +247,10 @@ async function submitEntry() {
       '<p style="color:var(--mut);font-size:.88rem;margin-bottom:6px">Events: '+evLabels+'</p>' +
       (isLL?'<p style="color:var(--mut);font-size:.85rem">Marked as Lead Line</p>':'')+
       '<p class="note" style="margin-top:16px">To make changes, contact the club secretary.</p>' +
-      '<div class="links" style="margin-top:20px"><a href="/standings">View Standings</a></div>' +
+      '<div style="margin-top:20px;display:flex;flex-direction:column;gap:10px;align-items:center">' +
+      '<button class="btn" style="max-width:280px" onclick="init()">Enter Another Contestant</button>' +
+      '<div class="links"><a href="/standings">View Standings</a></div>' +
+      '</div>' +
       '</div>';
   } catch(e) {
     showMsg(e.message, 'err');
