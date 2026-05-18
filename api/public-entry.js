@@ -2,11 +2,11 @@ const { supabase } = require('../lib/supabase');
 const { setCors } = require('../lib/auth');
 
 // Team roping partner event IDs (must match EVENTS ids in shared.js)
+// Boys 15-18 are intentionally excluded — they may enter both Header AND Heeler
 const TR_PAIRS = {
   'trh_g_1014': 'tre_g_1014', 'tre_g_1014': 'trh_g_1014',
   'trh_g_1518': 'tre_g_1518', 'tre_g_1518': 'trh_g_1518',
-  'trh_b_1014': 'tre_b_1014', 'tre_b_1014': 'trh_b_1014',
-  'trh_b_1518': 'tre_b_1518', 'tre_b_1518': 'trh_b_1518'
+  'trh_b_1014': 'tre_b_1014', 'tre_b_1014': 'trh_b_1014'
 };
 
 module.exports = async (req, res) => {
