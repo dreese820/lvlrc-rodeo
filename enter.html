@@ -160,8 +160,8 @@ function renderEvents(g, ag) {
   evs.forEach(function(ev){
     var checked = !!selectedEvents[ev.id];
     var blocked = false;
-    // Team roping: block partner
-    if (ev.label.indexOf('Team Roping') >= 0) {
+    // Team roping: block partner (Boys 15-18 may enter both roles)
+    if (ev.label.indexOf('Team Roping') >= 0 && !(g === 'Boys' && ag === '15-18')) {
       var isH = ev.label.indexOf('Header') >= 0;
       var pLabel = isH ? 'Team Roping (Heeler)' : 'Team Roping (Header)';
       var partner = evs.find(function(e){ return e.label === pLabel; });
@@ -181,6 +181,29 @@ function renderEvents(g, ag) {
     h += '<span>15-18 Calf Roping <span style="color:var(--mut);font-size:.75rem">(No All-Around Points)</span></span>';
     h += '</label>';
   }
+  if (ag === '6-9') {
+    var baId   = g==='Girls' ? 'ba_g_1014'  : 'ba_b_1014';
+    var trhId  = g==='Girls' ? 'trh_g_1014' : 'trh_b_1014';
+    var treId  = g==='Girls' ? 'tre_g_1014' : 'tre_b_1014';
+    var baC    = !!selectedEvents[baId];
+    var trhC   = !!selectedEvents[trhId];
+    var treC   = !!selectedEvents[treId];
+    h += '<div class="gh" style="margin-top:16px;margin-bottom:8px">Special Cross-Age Entry</div>';
+    h += '<div class="msg info" style="margin-bottom:10px;font-size:.82rem">Contestants entered here compete in the 10-14 Breakaway and/or Team Roping (Header <strong>or</strong> Heeler, not both). Points earned do <strong>not</strong> count toward the 6-9 All-Around standings.</div>';
+    h += '<div class="cg">';
+    h += '<label class="cl'+(baC?' on':'')+'" id="cl_'+baId+'">';
+    h += '<input type="checkbox"'+(baC?' checked':'')+' id="chk_'+baId+'" onchange="toggleEvent(\''+baId+'\')">';
+    h += '<span>10-14 Breakaway <span style="color:var(--mut);font-size:.75rem">(No All-Around Points)</span></span></label>';
+    var trhBlk = treC;
+    h += '<label class="cl'+(trhC?' on':'')+(trhBlk?' blk':'')+'" id="cl_'+trhId+'">';
+    h += '<input type="checkbox"'+(trhC?' checked':'')+(trhBlk?' disabled':'')+' id="chk_'+trhId+'" onchange="toggleEvent(\''+trhId+'\')">';
+    h += '<span>10-14 Team Roping (Header) <span style="color:var(--mut);font-size:.75rem">(No All-Around Points)</span></span></label>';
+    var treBlk = trhC;
+    h += '<label class="cl'+(treC?' on':'')+(treBlk?' blk':'')+'" id="cl_'+treId+'">';
+    h += '<input type="checkbox"'+(treC?' checked':'')+(treBlk?' disabled':'')+' id="chk_'+treId+'" onchange="toggleEvent(\''+treId+'\')">';
+    h += '<span>10-14 Team Roping (Heeler) <span style="color:var(--mut);font-size:.75rem">(No All-Around Points)</span></span></label>';
+    h += '</div>';
+  }
   sec.innerHTML = h;
 }
 
@@ -192,11 +215,12 @@ function toggleEvent(eid) {
   if (selectedEvents[eid]) {
     delete selectedEvents[eid];
   } else {
-    // Block team roping partner
-    if (ev && ev.label.indexOf('Team Roping') >= 0) {
+    // Block team roping partner (Boys 15-18 may enter both roles)
+    if (ev && ev.label.indexOf('Team Roping') >= 0 && !(g === 'Boys' && ag === '15-18')) {
       var isH = ev.label.indexOf('Header') >= 0;
       var pLabel = isH ? 'Team Roping (Heeler)' : 'Team Roping (Header)';
-      var partner = EVENTS.find(function(e){ return e.gender===g&&e.ag===ag&&e.label===pLabel; });
+      // Use ev.ag (not ag) so 6-9 cross-age entries find their 10-14 partner correctly
+      var partner = EVENTS.find(function(e){ return e.gender===ev.gender&&e.ag===ev.ag&&e.label===pLabel; });
       if (partner && selectedEvents[partner.id]) {
         showMsg('You cannot enter both Header and Heeler in Team Roping.', 'err');
         document.getElementById('chk_'+eid).checked = false;
@@ -250,6 +274,7 @@ async function submitEntry() {
     var evArr = eventIds.map(function(eid){
       if (eid === 'cro_b_1518' && ag === '10-14') return 'Calf Roping 15-18 (No All-Around Points)';
       var e = EVENTS.find(function(x){return x.id===eid;});
+      if (e && ag === '6-9' && e.ag === '10-14') return e.label + ' — 10-14 Division (No All-Around Points)';
       return e ? e.label : eid;
     });
     var totalDue = evArr.length * 10;

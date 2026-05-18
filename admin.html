@@ -282,7 +282,7 @@ function renderAdmin(){
     evs.forEach(function(ev){
       var entered = gE(rid,ev.id).indexOf(c.id)>=0;
       var blocked = false;
-      if (ev.label.indexOf('Team Roping')>=0) {
+      if (ev.label.indexOf('Team Roping')>=0 && !(ev.gender==='Boys'&&ev.ag==='15-18')) {
         var isH = ev.label.indexOf('Header')>=0;
         var pL = isH?'Team Roping (Heeler)':'Team Roping (Header)';
         EVENTS.forEach(function(pe){
@@ -306,6 +306,29 @@ function renderAdmin(){
       h+='<input type="checkbox"'+(caEntered?' checked':'')+' onchange="togE(\''+rid+'\',\'cro_b_1518\',\''+c.id+'\')">';
       h+='<span style="font-size:.83rem">15-18 Calf Roping <span style="color:var(--mut);font-size:.7rem">(No All-Around Points)</span></span>';
       h+='</label></div>';
+    }
+    if(ag==='6-9'){
+      var baId69=g==='Girls'?'ba_g_1014':'ba_b_1014';
+      var trhId69=g==='Girls'?'trh_g_1014':'trh_b_1014';
+      var treId69=g==='Girls'?'tre_g_1014':'tre_b_1014';
+      var baE69=gE(rid,baId69).indexOf(c.id)>=0;
+      var trhE69=gE(rid,trhId69).indexOf(c.id)>=0;
+      var treE69=gE(rid,treId69).indexOf(c.id)>=0;
+      var trhBlk69=treE69; var treBlk69=trhE69;
+      h+='<div style="margin-top:10px;border-top:1px solid var(--bdr);padding-top:10px">';
+      h+='<div class="gh" style="margin-bottom:6px">Special Cross-Age Entry</div>';
+      h+='<div style="font-size:.78rem;color:var(--mut);margin-bottom:8px">Competes in 10-14 events. Points do not count toward 6-9 All-Around.</div>';
+      h+='<div class="cg">';
+      h+='<label class="cl'+(baE69?' on':'')+'">';
+      h+='<input type="checkbox"'+(baE69?' checked':'')+' onchange="togE(\''+rid+'\',\''+baId69+'\',\''+c.id+'\')">';
+      h+='<span style="font-size:.83rem">10-14 Breakaway <span style="color:var(--mut);font-size:.7rem">(No AA Pts)</span></span></label>';
+      h+='<label class="cl'+(trhE69?' on':'')+(trhBlk69?' blk':'')+'"'+(trhBlk69?' title="Already entered as Heeler"':'')+'>';
+      h+='<input type="checkbox"'+(trhE69?' checked':'')+(trhBlk69?' disabled':'')+' onchange="togE(\''+rid+'\',\''+trhId69+'\',\''+c.id+'\')">';
+      h+='<span style="font-size:.83rem">10-14 TR Header <span style="color:var(--mut);font-size:.7rem">(No AA Pts)</span></span></label>';
+      h+='<label class="cl'+(treE69?' on':'')+(treBlk69?' blk':'')+'"'+(treBlk69?' title="Already entered as Header"':'')+'>';
+      h+='<input type="checkbox"'+(treE69?' checked':'')+(treBlk69?' disabled':'')+' onchange="togE(\''+rid+'\',\''+treId69+'\',\''+c.id+'\')">';
+      h+='<span style="font-size:.83rem">10-14 TR Heeler <span style="color:var(--mut);font-size:.7rem">(No AA Pts)</span></span></label>';
+      h+='</div></div>';
     }
     h+='</div>';
   });
@@ -339,7 +362,7 @@ async function togE(rid,eid,cid) {
   var entered = gE(rid,eid).indexOf(cid)>=0;
   if (!entered) {
     var ev=EVENTS.find(function(e){return e.id===eid;});
-    if (ev&&ev.label.indexOf('Team Roping')>=0) {
+    if (ev&&ev.label.indexOf('Team Roping')>=0&&!(ev.gender==='Boys'&&ev.ag==='15-18')) {
       var isH=ev.label.indexOf('Header')>=0;
       var pL=isH?'Team Roping (Heeler)':'Team Roping (Header)';
       var pe=EVENTS.find(function(e){return e.gender===ev.gender&&e.ag===ev.ag&&e.label===pL;});
