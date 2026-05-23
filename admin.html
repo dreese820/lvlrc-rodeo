@@ -448,8 +448,14 @@ function renderDraw(){
     }
     h+='</div>';
     if(draw.length){
+      var lateInDraw=ents.filter(function(cid){return draw.indexOf(cid)<0;});
       draw.forEach(function(cid,i){
         h+='<div class="dr"><span class="dn">'+(i+1)+'</span><span>'+gC(cid).name+'</span></div>';
+      });
+      lateInDraw.forEach(function(cid){
+        h+='<div class="dr" style="border-left:3px solid rgba(200,146,10,.5);opacity:.9">';
+        h+='<span class="dn" style="color:var(--gold);font-size:.65rem;font-style:italic">LE</span>';
+        h+='<span>'+gC(cid).name+' <span style="color:var(--gold);font-size:.75rem;font-style:italic">(Late Entry)</span></span></div>';
       });
     } else if(ents.length){
       h+='<div class="empty" style="padding:6px 0">Click Draw to randomize</div>';
@@ -506,7 +512,9 @@ function renderSecretary(){
   if(!ev) return h;
 
   var draw=gD(rid,ev.id);
-  var ents=draw.length?draw:gE(rid,ev.id);
+  var allEnts=gE(rid,ev.id);
+  var lateEnts=draw.length?allEnts.filter(function(cid){return draw.indexOf(cid)<0;}):[];
+  var ents=draw.length?draw:allEnts;
 
   h+='<div class="ph"><div class="pc">Long Valley Lions Rodeo Club</div>';
   h+='<div class="pi">'+rod.label+' &mdash; '+rod.date+' | '+g+' '+ag+' | '+ev.label+'</div></div>';
@@ -514,6 +522,7 @@ function renderSecretary(){
   h+='<button class="btn bg" onclick="reloadSec()">Refresh</button> ';
   h+='<button class="btn bo" onclick="window.print()">Print This Sheet</button>';
   if(!draw.length)h+=' <span style="color:#c87a0a;font-size:.8rem;font-style:italic">No draw — showing entry order</span>';
+  if(draw.length&&lateEnts.length)h+=' <span style="color:#c87a0a;font-size:.8rem;font-style:italic">'+lateEnts.length+' late entr'+(lateEnts.length===1?'y':'ies')+' added after draw</span>';
   h+='</div>';
 
   h+='<div class="card"><div class="sh">';
@@ -553,6 +562,42 @@ function renderSecretary(){
     h+='<span class="sk"><input type="checkbox"'+(r.noTime?' checked':'')+' onchange="sc2(\''+rid+'\',\''+ev.id+'\',\''+cid+'\',\'noTime\',this.checked)"></span>';
     h+='</div>';
   });
+
+  if(lateEnts.length){
+    h+='<div style="padding:6px 12px;background:rgba(200,146,10,.07);border-top:2px dashed rgba(200,146,10,.35)">';
+    h+='<span style="font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold)">Late Entries — added after draw</span>';
+    h+='</div>';
+    lateEnts.forEach(function(cid,li){
+      var r=gR(rid,ev.id,cid),c=gC(cid);
+      var tV=parseFloat(r.time)||0,pV=parseFloat(r.pen)||0;
+      var tot=(tV>0||pV>0)?(tV+pV).toFixed(3):'';
+      var bg=li%2===0?'rgba(200,146,10,.03)':'transparent';
+      h+='<div class="sr" style="background:'+bg+';border-left:3px solid rgba(200,146,10,.5)">';
+      h+='<span class="sn" style="color:var(--gold);font-size:.68rem;font-style:italic">LE</span>';
+      h+='<span class="nm">'+c.name+' <span style="color:var(--gold);font-size:.72rem;font-style:italic">(Late Entry)</span></span>';
+      if(ev.type==='loops'){
+        h+='<input class="si" type="text" value="'+(r.loop1||'')+'" oninput="su(\''+rid+'\',\''+ev.id+'\',\''+cid+'\',\'loop1\',this.value)">';
+        h+='<input class="si" type="text" value="'+(r.loop2||'')+'" oninput="su(\''+rid+'\',\''+ev.id+'\',\''+cid+'\',\'loop2\',this.value)">';
+        h+='<input class="si" type="text" value="'+(r.loop3||'')+'" oninput="su(\''+rid+'\',\''+ev.id+'\',\''+cid+'\',\'loop3\',this.value)">';
+        h+='<span id="lc'+ev.id+cid+'" class="sc gd">'+(r.loopCount||0)+'</span>';
+        h+='<span id="lt'+ev.id+cid+'" class="sc" style="font-family:monospace">'+(r.loopTotal||'&mdash;')+'</span>';
+      }
+      if(ev.type==='time'){
+        h+='<input class="si" type="text" value="'+(r.time||'')+'" oninput="su(\''+rid+'\',\''+ev.id+'\',\''+cid+'\',\'time\',this.value)">';
+        h+='<input class="si" type="text" value="'+(r.pen||'')+'" oninput="su(\''+rid+'\',\''+ev.id+'\',\''+cid+'\',\'pen\',this.value)">';
+        h+='<span id="tt'+ev.id+cid+'" class="sc gd" style="font-family:monospace">'+(r.noTime?'NT':(tot||'&mdash;'))+'</span>';
+      }
+      if(ev.type==='score'){
+        h+='<input class="si" type="text" value="'+(r.score||'')+'" oninput="su(\''+rid+'\',\''+ev.id+'\',\''+cid+'\',\'score\',this.value)">';
+      }
+      if(ev.ll){
+        h+='<span class="sk"><input type="checkbox"'+(r.ll?' checked':'')+' onchange="sc2(\''+rid+'\',\''+ev.id+'\',\''+cid+'\',\'ll\',this.checked)"></span>';
+      }
+      h+='<span class="sk"><input type="checkbox"'+(r.noTime?' checked':'')+' onchange="sc2(\''+rid+'\',\''+ev.id+'\',\''+cid+'\',\'noTime\',this.checked)"></span>';
+      h+='</div>';
+    });
+  }
+
   h+='</div>';
   return h;
 }
@@ -867,7 +912,8 @@ async function printAllDraws(){
         var ents=gE(rid,ev.id);
         if(!ents.length)return;
         var draw=gD(rid,ev.id);
-        sections.push({gender:gender,ag:ag,ev:ev,list:draw.length?draw:ents,hasDraw:draw.length>0});
+        var late=draw.length?ents.filter(function(cid){return draw.indexOf(cid)<0;}):[];
+        sections.push({gender:gender,ag:ag,ev:ev,list:draw.length?draw:ents,hasDraw:draw.length>0,late:late});
       });
     });
   });
@@ -899,6 +945,13 @@ async function printAllDraws(){
     s.list.forEach(function(cid,i){
       body+='<div class="row"><span class="num">'+(i+1)+'.</span><span>'+gC(cid).name+'</span></div>';
     });
+    if(s.late&&s.late.length){
+      body+='<div class="row" style="margin-top:4px;padding-top:4px;border-top:1pt dashed #bbb">';
+      body+='<span class="num"></span><span style="color:#c87a0a;font-style:italic;font-size:7.5pt;font-weight:bold">Late Entries</span></div>';
+      s.late.forEach(function(cid){
+        body+='<div class="row"><span class="num" style="color:#c87a0a">LE</span><span>'+gC(cid).name+'</span></div>';
+      });
+    }
     body+='</div>';
   });
   body+='</div>';
