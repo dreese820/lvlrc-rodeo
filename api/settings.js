@@ -1,4 +1,5 @@
 const { supabase } = require('../lib/supabase');
+const { supabaseAdmin } = require('../lib/supabase-admin');
 const { verifyToken, setCors } = require('../lib/auth');
 
 module.exports = async (req, res) => {
@@ -22,7 +23,7 @@ module.exports = async (req, res) => {
     if (!rodeoId || typeof open !== 'boolean') {
       return res.status(400).json({ error: 'Missing fields' });
     }
-    const { error } = await supabase.from('rodeo_settings').upsert(
+    const { error } = await supabaseAdmin.from('rodeo_settings').upsert(
       { rodeo_id: rodeoId, entries_open: open, updated_at: new Date().toISOString() },
       { onConflict: 'rodeo_id' }
     );

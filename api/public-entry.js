@@ -1,4 +1,5 @@
 const { supabase } = require('../lib/supabase');
+const { supabaseAdmin } = require('../lib/supabase-admin');
 const { setCors } = require('../lib/auth');
 
 // Team roping partner event IDs (must match EVENTS ids in shared.js)
@@ -52,7 +53,7 @@ module.exports = async (req, res) => {
   if (existing) {
     contestantId = existing.id;
   } else {
-    const { data: created, error: ce } = await supabase
+    const { data: created, error: ce } = await supabaseAdmin
       .from('contestants')
       .insert({ name: name.trim(), gender, age_group: ageGroup })
       .select('id')
@@ -68,7 +69,7 @@ module.exports = async (req, res) => {
       event_id: eid,
       contestant_id: contestantId
     }));
-    const { error: ee } = await supabase
+    const { error: ee } = await supabaseAdmin
       .from('entries')
       .upsert(rows, { onConflict: 'rodeo_id,event_id,contestant_id', ignoreDuplicates: true });
     if (ee) return res.status(500).json({ error: ee.message });
@@ -83,7 +84,7 @@ module.exports = async (req, res) => {
       is_ll: true,
       updated_at: new Date().toISOString()
     }));
-    await supabase.from('results')
+    await supabaseAdmin.from('results')
       .upsert(llRows, { onConflict: 'rodeo_id,event_id,contestant_id' });
   }
 

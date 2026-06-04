@@ -1,4 +1,5 @@
 const { supabase } = require('../lib/supabase');
+const { supabaseAdmin } = require('../lib/supabase-admin');
 const { verifyToken, setCors } = require('../lib/auth');
 
 // Returns all results as { rodeoId: { eventId: { contestantId: { fields } } } }
@@ -67,7 +68,7 @@ module.exports = async (req, res) => {
       dbValue = parseInt(value) || 0;
     }
 
-    const { error } = await supabase.from('results').upsert(
+    const { error } = await supabaseAdmin.from('results').upsert(
       {
         rodeo_id: rodeoId,
         event_id: eventId,

@@ -1,4 +1,5 @@
 const { supabase } = require('../lib/supabase');
+const { supabaseAdmin } = require('../lib/supabase-admin');
 const { verifyToken, setCors } = require('../lib/auth');
 
 module.exports = async (req, res) => {
@@ -21,7 +22,7 @@ module.exports = async (req, res) => {
   if (req.method === 'POST') {
     const { name, gender, ageGroup } = req.body || {};
     if (!name || !gender || !ageGroup) return res.status(400).json({ error: 'Missing fields' });
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('contestants')
       .insert({ name: name.trim(), gender, age_group: ageGroup })
       .select('id, name, gender, age_group')
@@ -33,7 +34,7 @@ module.exports = async (req, res) => {
   if (req.method === 'DELETE') {
     const id = req.query.id;
     if (!id) return res.status(400).json({ error: 'Missing id' });
-    const { error } = await supabase.from('contestants').delete().eq('id', id);
+    const { error } = await supabaseAdmin.from('contestants').delete().eq('id', id);
     if (error) return res.status(500).json({ error: error.message });
     return res.json({ ok: true });
   }

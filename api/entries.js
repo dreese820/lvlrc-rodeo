@@ -1,4 +1,5 @@
 const { supabase } = require('../lib/supabase');
+const { supabaseAdmin } = require('../lib/supabase-admin');
 const { verifyToken, setCors } = require('../lib/auth');
 
 // Returns all entries as { rodeoId: { eventId: [contestantId, ...] } }
@@ -34,14 +35,14 @@ module.exports = async (req, res) => {
       const { rodeoId, contestantId, eventIds } = req.body;
       if (!eventIds?.length) return res.json({ ok: true });
       const rows = eventIds.map(eid => ({ rodeo_id: rodeoId, event_id: eid, contestant_id: contestantId }));
-      await supabase.from('entries').upsert(rows, { onConflict: 'rodeo_id,event_id,contestant_id', ignoreDuplicates: true });
+      await supabaseAdmin.from('entries').upsert(rows, { onConflict: 'rodeo_id,event_id,contestant_id', ignoreDuplicates: true });
       return res.json({ ok: true });
     }
 
     if (action === 'clearall') {
       const { rodeoId, contestantId, eventIds } = req.body;
       if (!eventIds?.length) return res.json({ ok: true });
-      await supabase.from('entries')
+      await supabaseAdmin.from('entries')
         .delete()
         .eq('rodeo_id', rodeoId)
         .eq('contestant_id', contestantId)
@@ -50,14 +51,14 @@ module.exports = async (req, res) => {
     }
 
     if (action === 'add') {
-      await supabase.from('entries')
+      await supabaseAdmin.from('entries')
         .upsert({ rodeo_id: rodeoId, event_id: eventId, contestant_id: contestantId },
           { onConflict: 'rodeo_id,event_id,contestant_id', ignoreDuplicates: true });
       return res.json({ ok: true });
     }
 
     if (action === 'remove') {
-      await supabase.from('entries')
+      await supabaseAdmin.from('entries')
         .delete()
         .eq('rodeo_id', rodeoId)
         .eq('event_id', eventId)

@@ -1,4 +1,5 @@
 const { supabase } = require('../lib/supabase');
+const { supabaseAdmin } = require('../lib/supabase-admin');
 const { verifyToken, setCors } = require('../lib/auth');
 
 // Returns all draws as { rodeoId: { eventId: [contestantId, ...] } }
@@ -29,7 +30,7 @@ module.exports = async (req, res) => {
     if (!rodeoId || !eventId || !Array.isArray(contestantIds)) {
       return res.status(400).json({ error: 'Missing fields' });
     }
-    const { error } = await supabase.from('draws').upsert(
+    const { error } = await supabaseAdmin.from('draws').upsert(
       { rodeo_id: rodeoId, event_id: eventId, contestant_ids: contestantIds, updated_at: new Date().toISOString() },
       { onConflict: 'rodeo_id,event_id' }
     );
