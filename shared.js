@@ -381,11 +381,8 @@ function rankEv(entries, results, eid) {
     i=j;
   }
 
-  // 2) Independent NT/TO — no points, no place
-  noScore.forEach(function(e){var o=Object.assign({},e);o.place=null;o.points=0;out.push(o);});
-
-  // 3) LL scored — offset by valid + noScore so NT riders consume point slots (matches original)
-  var llOffset=valid.length+noScore.length, li=0;
+  // 2) LL scored — offset by valid only; NT/TO never consume point slots
+  var llOffset=valid.length, li=0;
   while(li<llV.length){
     var lj=li+1;
     while(lj<llV.length&&tied(llV[li],llV[lj]))lj++;
@@ -393,6 +390,9 @@ function rankEv(entries, results, eid) {
     for(var k=li;k<lj;k++){var o2=Object.assign({},llV[k]);o2.place=llOffset+li+1;o2.points=pts2;out.push(o2);}
     li=lj;
   }
+
+  // 3) Independent NT/TO — no points, no place
+  noScore.forEach(function(e){var o=Object.assign({},e);o.place=null;o.points=0;out.push(o);});
 
   // 4) LL NT/TO — no points, no place
   llNoScore.forEach(function(e){var o=Object.assign({},e);o.place=null;o.points=0;out.push(o);});
