@@ -429,10 +429,12 @@ function renderDraw(){
   h+='<div class="ph"><div class="pc">Long Valley Lions Rodeo Club</div>';
   h+='<div class="pi">'+rod.label+' &mdash; '+rod.date+'</div>';
   h+='<div class="pi">'+g+' &nbsp;&bull;&nbsp; Age Group: '+ag+'</div></div>';
+  var hasDraw = EVENTS.some(function(ev){ return gD(rid,ev.id).length>0; });
   h+='<div class="fr np" style="margin-bottom:12px">';
   h+='<button class="btn bg" onclick="drawAll()">Draw All Events</button> ';
   h+='<button class="btn bo" onclick="window.print()">Print This View</button> ';
   h+='<button class="btn bo" onclick="printAllDraws()">Print All Draw Sheets</button>';
+  if(hasDraw) h+=' <button class="btn bo" onclick="printAnnouncerSheet()" style="background:rgba(60,120,200,.15);border-color:rgba(60,120,200,.4);color:#7ab0f0">Print Announcer Sheet</button>';
   h+='</div>';
   h+=fbar('dG','dA');
   var evs=EVENTS.filter(function(e){return e.gender===g&&e.ag===ag;});
@@ -959,6 +961,89 @@ async function printAllDraws(){
 
   var w=window.open('','_blank','width=820,height=640');
   w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Draw Sheets</title><style>'+css+'</style></head><body>'+body+'<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};<\/script></body></html>');
+  w.document.close();
+}
+
+// ─── Print announcer sheet ───────────────────────────────────────────────────
+async function printAnnouncerSheet(){
+  toast('Building announcer sheet…');
+  await loadAll();
+  var rid=S.rod;
+  var rod=RODEOS.find(function(r){return r.id===rid;});
+
+  // Arena pages: each page lists event IDs in run order. Skip any with no entries.
+  var PAGES=[
+    {arena:'MAIN ARENA',events:['cr_b_69','br_g_1518','br_g_1014','br_b_1014','br_g_69','br_b_69','br_g_05','br_b_05','sr_b_1014','bu_b_1518']},
+    {arena:'BLEACHER SIDE (East)',events:['po_g_05','po_b_05','po_g_69','po_b_69','rp_g_05','rp_b_05','gt_g_69','gt_b_69']},
+    {arena:'ANNOUNCER SIDE (West)',events:['po_g_1014','po_g_1518','gt_g_1014','gt_b_1014','gt_g_1518','gt_b_1518']},
+    {arena:'UN-SPLIT ARENA',events:['cro_b_1518','ba_g_1518','ba_b_1014','ba_g_1014','trh_b_1518','tre_b_1518','trh_g_1518','tre_g_1518','trh_b_1014','tre_b_1014','trh_g_1014','tre_g_1014']}
+  ];
+
+  function evData(eid){
+    var ev=EVENTS.find(function(e){return e.id===eid;});
+    if(!ev) return null;
+    var ents=gE(rid,eid);
+    if(!ents.length) return null;
+    var draw=gD(rid,eid);
+    var list=draw.length?draw:ents;
+    var late=draw.length?ents.filter(function(cid){return draw.indexOf(cid)<0;}):[];
+    return{ev:ev,list:list,late:late,hasDraw:draw.length>0};
+  }
+
+  var css=[
+    '*{box-sizing:border-box;margin:0;padding:0;}',
+    'body{font-family:Arial,sans-serif;font-size:10pt;color:#000;background:#fff;}',
+    '.pg{padding:0.35in;}',
+    '.pg+.pg{break-before:page;}',
+    '.ph{text-align:center;margin-bottom:14px;padding-bottom:8px;border-bottom:2pt solid #000;}',
+    '.club{font-size:11pt;font-weight:bold;text-transform:uppercase;letter-spacing:.07em;}',
+    '.ri{font-size:9pt;color:#333;margin-top:3px;}',
+    '.arena{font-size:14pt;font-weight:bold;text-transform:uppercase;letter-spacing:.08em;margin-top:5px;}',
+    '.evs{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;margin-top:10px;}',
+    '.evbox{border:1pt solid #bbb;border-radius:3pt;padding:7px 10px;break-inside:avoid;}',
+    '.etitle{font-size:10.5pt;font-weight:bold;}',
+    '.esub{font-size:7.5pt;color:#555;margin-bottom:5px;padding-bottom:3px;border-bottom:1pt solid #ddd;}',
+    '.row{display:flex;gap:6px;padding:2.5px 0;border-bottom:1pt dotted #e0e0e0;font-size:9.5pt;}',
+    '.row:last-child{border-bottom:none;}',
+    '.num{min-width:22px;font-weight:bold;color:#555;text-align:right;font-size:9pt;}',
+    '.le-hdr{font-size:7.5pt;font-weight:bold;color:#c87a0a;margin-top:4px;padding-top:3px;border-top:1pt dashed #ccc;}',
+    '.le .num{color:#c87a0a;font-style:italic;}',
+    '.le span:last-child{color:#c87a0a;font-style:italic;}',
+    '@media print{.pg{padding:0;}.pg+.pg{break-before:page;}@page{size:letter;margin:0.4in;}}'
+  ].join('');
+
+  var body='';
+  PAGES.forEach(function(pg){
+    var rows=pg.events.map(evData).filter(Boolean);
+    if(!rows.length) return;
+    body+='<div class="pg">';
+    body+='<div class="ph">';
+    body+='<div class="club">Long Valley Lions Rodeo Club</div>';
+    body+='<div class="ri">'+rod.label+' &mdash; '+rod.date+'</div>';
+    body+='<div class="arena">'+pg.arena+'</div>';
+    body+='</div>';
+    body+='<div class="evs">';
+    rows.forEach(function(d){
+      body+='<div class="evbox">';
+      body+='<div class="etitle">'+d.ev.label+'</div>';
+      body+='<div class="esub">'+d.ev.gender+' &bull; Age '+d.ev.ag+(d.hasDraw?'':' &mdash; entry order')+'</div>';
+      d.list.forEach(function(cid,i){
+        body+='<div class="row"><span class="num">'+(i+1)+'.</span><span>'+gC(cid).name+'</span></div>';
+      });
+      if(d.late&&d.late.length){
+        body+='<div class="le-hdr">Late Entries</div>';
+        d.late.forEach(function(cid){
+          body+='<div class="row le"><span class="num">LE</span><span>'+gC(cid).name+'</span></div>';
+        });
+      }
+      body+='</div>';
+    });
+    body+='</div></div>';
+  });
+
+  if(!body){toast('No entries found for this rodeo.','err');return;}
+  var w=window.open('','_blank','width=820,height=640');
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Announcer Sheet &mdash; '+rod.label+'</title><style>'+css+'</style></head><body>'+body+'<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};<\/script></body></html>');
   w.document.close();
 }
 
