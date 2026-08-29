@@ -429,12 +429,10 @@ function renderDraw(){
   h+='<div class="ph"><div class="pc">Long Valley Lions Rodeo Club</div>';
   h+='<div class="pi">'+rod.label+' &mdash; '+rod.date+'</div>';
   h+='<div class="pi">'+g+' &nbsp;&bull;&nbsp; Age Group: '+ag+'</div></div>';
-  var hasDraw = EVENTS.some(function(ev){ return gD(rid,ev.id).length>0; });
   h+='<div class="fr np" style="margin-bottom:12px">';
   h+='<button class="btn bg" onclick="drawAll()">Draw All Events</button> ';
   h+='<button class="btn bo" onclick="window.print()">Print This View</button> ';
   h+='<button class="btn bo" onclick="printAllDraws()">Print All Draw Sheets</button>';
-  if(hasDraw) h+=' <button class="btn bo" onclick="printAnnouncerSheet()" style="background:rgba(60,120,200,.15);border-color:rgba(60,120,200,.4);color:#7ab0f0">Print Announcer Sheet</button>';
   h+='</div>';
   h+=fbar('dG','dA');
   var evs=EVENTS.filter(function(e){return e.gender===g&&e.ag===ag;});
@@ -812,6 +810,15 @@ function renderSettings(){
     h+='<button class="tog-btn '+(open?'closed':'open')+'" onclick="toggleOpen(\''+rod.id+'\','+(open?'false':'true')+')">'+(open?'Close Entries':'Open Entries')+'</button>';
     h+='</div></div>';
   });
+  var hasDraw=EVENTS.some(function(ev){return gD(S.rod,ev.id).length>0;});
+  h+='<div class="card"><div class="gh" style="margin-bottom:10px">Announcer Sheet</div>';
+  h+='<p style="font-size:.88rem;color:var(--mut);margin-bottom:12px">Prints a 4-page run-order sheet organized by arena location. Run draws first.</p>';
+  if(hasDraw){
+    h+='<button class="btn bg" onclick="printAnnouncerSheet()">Print Announcer Sheet &mdash; '+rod.label+'</button>';
+  } else {
+    h+='<div style="font-size:.85rem;color:#cc6666">No draws have been run yet for '+rod.label+'. Go to the Draw tab and run draws first.</div>';
+  }
+  h+='</div>';
   h+='<div class="card"><div class="gh">Public Links</div>';
   h+='<p style="font-size:.88rem;color:var(--mut);margin-bottom:10px">Share these links with contestants and families:</p>';
   h+='<div style="display:flex;flex-direction:column;gap:8px">';
