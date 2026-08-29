@@ -810,13 +810,14 @@ function renderSettings(){
     h+='<button class="tog-btn '+(open?'closed':'open')+'" onclick="toggleOpen(\''+rod.id+'\','+(open?'false':'true')+')">'+(open?'Close Entries':'Open Entries')+'</button>';
     h+='</div></div>';
   });
+  var activeRod=RODEOS.find(function(r){return r.id===S.rod;});
   var hasDraw=EVENTS.some(function(ev){return gD(S.rod,ev.id).length>0;});
   h+='<div class="card"><div class="gh" style="margin-bottom:10px">Announcer Sheet</div>';
   h+='<p style="font-size:.88rem;color:var(--mut);margin-bottom:12px">Prints a 4-page run-order sheet organized by arena location. Run draws first.</p>';
   if(hasDraw){
-    h+='<button class="btn bg" onclick="printAnnouncerSheet()">Print Announcer Sheet &mdash; '+rod.label+'</button>';
+    h+='<button class="btn bg" onclick="printAnnouncerSheet()">Print Announcer Sheet &mdash; '+activeRod.label+'</button>';
   } else {
-    h+='<div style="font-size:.85rem;color:#cc6666">No draws have been run yet for '+rod.label+'. Go to the Draw tab and run draws first.</div>';
+    h+='<div style="font-size:.85rem;color:#cc6666">No draws have been run yet for '+activeRod.label+'. Go to the Draw tab and run draws first.</div>';
   }
   h+='</div>';
   h+='<div class="card"><div class="gh">Public Links</div>';
