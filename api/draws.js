@@ -1,10 +1,11 @@
 const { supabase } = require('../lib/supabase');
 const { supabaseAdmin } = require('../lib/supabase-admin');
 const { verifyToken, setCors } = require('../lib/auth');
+const { fetchAll } = require('../lib/db');
 
 // Returns all draws as { rodeoId: { eventId: [contestantId, ...] } }
 async function getAllDraws() {
-  const { data } = await supabase.from('draws').select('rodeo_id, event_id, contestant_ids');
+  const data = await fetchAll(supabase, 'draws', 'rodeo_id, event_id, contestant_ids', 'id');
   const out = {};
   for (const row of data || []) {
     if (!out[row.rodeo_id]) out[row.rodeo_id] = {};
@@ -18,7 +19,11 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   if (req.method === 'GET') {
-    return res.json(await getAllDraws());
+    try {
+      return res.json(await getAllDraws());
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
+    }
   }
 
   const user = verifyToken(req);

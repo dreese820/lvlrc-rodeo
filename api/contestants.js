@@ -1,19 +1,20 @@
 const { supabase } = require('../lib/supabase');
 const { supabaseAdmin } = require('../lib/supabase-admin');
 const { verifyToken, setCors } = require('../lib/auth');
+const { fetchAll } = require('../lib/db');
 
 module.exports = async (req, res) => {
   setCors(res);
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   if (req.method === 'GET') {
-    const { data, error } = await supabase
-      .from('contestants')
-      .select('id, name, gender, age_group')
-      .order('name');
-    if (error) return res.status(500).json({ error: error.message });
-    const out = (data || []).map(c => ({ id: c.id, name: c.name, gender: c.gender, ageGroup: c.age_group }));
-    return res.json(out);
+    try {
+      const data = await fetchAll(supabase, 'contestants', 'id, name, gender, age_group', ['name', 'id']);
+      const out = data.map(c => ({ id: c.id, name: c.name, gender: c.gender, ageGroup: c.age_group }));
+      return res.json(out);
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
+    }
   }
 
   const user = verifyToken(req);
